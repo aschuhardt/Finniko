@@ -102,6 +102,8 @@ impl GameController {
         match self.try_move(&self.state.player, &dir) {
             MovementResult::Clear => self.state.player.move_toward(&dir),
             MovementResult::MapEdge(edge_pos) => {
+                let mut offset_x = 0;
+                let mut offset_y = 0;
                 let (edge_x, edge_y) = (edge_pos[0], edge_pos[1]);
                 let (width, height) = (
                     self.state.map.width() as i32,
@@ -109,14 +111,20 @@ impl GameController {
                 );
                 if edge_x == -1 {
                     self.state.player.set_x(width - 1);
+                    offset_x = -1;
                 } else if edge_x == width {
                     self.state.player.set_x(0);
+                    offset_x = 1;
                 }
                 if edge_y == -1 {
                     self.state.player.set_y(height - 1);
+                    offset_y = -1;
                 } else if edge_y == height {
                     self.state.player.set_y(0);
+                    offset_y = 1;
                 }
+
+                self.state.map = self.map_builder.create_offset([offset_x, offset_y]);
             }
             _ => {}
         }

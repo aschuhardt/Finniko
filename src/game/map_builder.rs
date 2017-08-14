@@ -38,13 +38,23 @@ impl MapBuilder {
             self.current_offset[1] + offset[1],
         ];
 
+        let (offset_x, offset_y) = (self.current_offset[0] as f32, self.current_offset[1] as f32);
+
         let map_gen_start = PreciseTime::now();
         let mut map = Map::new();
+        println!("{:?},{:?}", offset_x, offset_y);
 
         let stone_noise = Fbm::<f32>::new().set_seed(self.seed + 1);
         map.mut_parallel(move |t| {
             let (x, y) = (t.position[0] as f32, t.position[1] as f32);
-            if stone_noise.get([x * NOISE_SCALE, y * NOISE_SCALE, 2.0]) > 0.1 {
+            if stone_noise.get(
+                [
+                    (x * NOISE_SCALE) + offset_x,
+                    (y * NOISE_SCALE) + offset_y,
+                    1.0,
+                ],
+            ) > 0.1
+            {
                 t.tile_type = TileType::Floor(FloorType::Concrete);
             }
         });
@@ -52,7 +62,14 @@ impl MapBuilder {
         let grass_noise = Fbm::<f32>::new().set_seed(self.seed);
         map.mut_parallel(move |t| {
             let (x, y) = (t.position[0] as f32, t.position[1] as f32);
-            if grass_noise.get([x * NOISE_SCALE, y * NOISE_SCALE, 2.0]) > 0.1 {
+            if grass_noise.get(
+                [
+                    (x * NOISE_SCALE) + offset_x,
+                    (y * NOISE_SCALE) + offset_y,
+                    1.0,
+                ],
+            ) > 0.1
+            {
                 t.tile_type = TileType::Floor(FloorType::Grass);
             }
         });
