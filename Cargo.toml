@@ -3,7 +3,6 @@ authors = ["Addison Schuhardt <a@schuhardt.net>"]
 name = "finniko"
 version = "0.1.0"
 [dependencies]
-"." = "*"
 find_folder = "*"
 fps_counter = "*"
 image = "*"
