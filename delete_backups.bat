@@ -1,0 +1,1 @@
+del /F /S *.rs.bk

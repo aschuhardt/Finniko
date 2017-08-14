@@ -1,0 +1,14 @@
+[package]
+authors = ["Addison Schuhardt <a@schuhardt.net>"]
+name = "resource_packer"
+version = "0.1.0"
+[dependencies]
+find_folder = "*"
+image = "*"
+serde = "1.0"
+serde_json = "1.0"
+texture_packer = "*"
+walkdir = "*"
+
+[dependencies.texture_coords]
+path = "../texture_coords"
