@@ -1,3 +1,4 @@
+use std::iter::Iterator;
 use graphics::{self, Transformed, DrawState, Context};
 use opengl_graphics::{GlGraphics, TextureSettings};
 use opengl_graphics::glyph_cache::GlyphCache;
@@ -9,9 +10,9 @@ const FONT_PATH_LIGHT: &'static str = "assets/OpenSans-Light.ttf";
 const FONT_PATH_REGULAR: &'static str = "assets/OpenSans-Regular.ttf";
 const FONT_PATH_BOLD: &'static str = "assets/OpenSans-Bold.ttf";
 const FONT_SIZE: u32 = 16;
-const MESSAGE_LINE_HEIGHT: f64 = 24.0;
+const MESSAGE_LINE_HEIGHT: f64 = 18.0;
 const MESSAGE_LEFT_PAD: f64 = 10.0;
-const MESSAGE_TOP: f64 = 16.0;
+const MESSAGE_TOP: f64 = 6.0;
 
 enum FontStyle {
     Light,
@@ -121,12 +122,9 @@ impl GameView {
 
             // text
             let line_count = (screen_rect[3] as f64 / MESSAGE_LINE_HEIGHT) as usize - 1;
-            let messages: Vec<&Message> = controller.get_messages().iter().rev().collect(); //ref
+            let messages = controller.get_messages(line_count);
             for i in 0..messages.len() {
-                if i > line_count {
-                    break;
-                }
-                let msg = messages[i];
+                let msg = &messages[i];
                 let color = match msg.message_type {
                     MessageType::Normal => MESSAGE_COLOR_NORMAL,
                     MessageType::Danger => MESSAGE_COLOR_DANGER,

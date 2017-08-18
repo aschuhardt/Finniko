@@ -3,4 +3,6 @@
 /.vscode/
 Cargo.lock
 /texture_coords/target/
+/texture_coords/Cargo.lock
 /resource_packer/target/
+/resource_packer/Cargo.lock

@@ -112,9 +112,9 @@ impl GameController {
         &self.state.player
     }
 
-    /// Returns a reference to the current queue of messages
-    pub fn get_messages(&self) -> &VecDeque<Message> {
-        &self.state.messages
+    /// Returns a collection of messages
+    pub fn get_messages(&self, count: usize) -> Vec<Message> {
+        self.state.messages.clone().into_iter().rev().take(count).collect()
     }
 
     /// Checks to see whether the target is capable of moving in the indicated
