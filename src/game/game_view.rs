@@ -135,7 +135,9 @@ impl GameView {
                 };
                 let position = [
                     MESSAGE_LEFT_PAD + left_adjust,
-                    (MESSAGE_LINE_HEIGHT * line_count as f64) - (MESSAGE_LINE_HEIGHT * i as f64) + MESSAGE_TOP
+                    (MESSAGE_LINE_HEIGHT * line_count as f64) 
+                        - (MESSAGE_LINE_HEIGHT * i as f64) 
+                        + MESSAGE_TOP,
                 ];
                 let text = msg.contents.clone();
                 self.write_at(text, FontStyle::Regular, position, color, c, g);
