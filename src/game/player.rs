@@ -4,6 +4,8 @@ use super::item::Item;
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
 
+const SPRITE_KEY: &'static str = "37";
+
 /// Stores information and statistics pertaining to the
 /// player's avatar.
 pub struct Player {
@@ -53,6 +55,6 @@ impl Inventory for Player {
 
 impl Drawable for Player {
     fn get_sprite_key(&self) -> String {
-        String::from("Soldier1")
+        String::from(SPRITE_KEY)
     }
 }

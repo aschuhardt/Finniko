@@ -42,47 +42,47 @@ impl DebugInfoView {
 
         self.write_at(
             format!("W/H: {:?}", window_size),
-            (TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING),
+            [TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 1.0],
             c,
             g,
         );
 
         self.write_at(
             format!("Mouse relative: {:?}", mouse_rel_pos),
-            (TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 2.0),
+            [TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 2.0],
             c,
             g,
         );
 
         self.write_at(
             format!("Mouse pos: {:?}", mouse_win_pos),
-            (TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 3.0),
+            [TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 3.0],
             c,
             g,
         );
 
         self.write_at(
             format!("Mouse scroll: {:?}", mouse_scroll),
-            (TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 4.0),
+            [TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 4.0],
             c,
             g,
         );
 
         self.write_at(
             format!("FPS: {:?}", current_fps),
-            (TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 5.0),
+            [TEXT_HORIZONTAL_POSITION, TEXT_VERTICAL_SPACING * 5.0],
             c,
             g,
         );
     }
 
     /// Helper function for rendering text to an area on the screen.
-    fn write_at(&mut self, text: String, pos: (f64, f64), c: &Context, g: &mut GlGraphics) {
+    fn write_at(&mut self, text: String, pos: [f64; 2], c: &Context, g: &mut GlGraphics) {
         Text::new_color(FONT_COLOR, FONT_SIZE).draw(
             text.as_str(),
             &mut self.glyphs,
             &DrawState::default(),
-            c.transform.trans(pos.0, pos.1),
+            c.transform.trans(pos[0], pos[1]),
             g,
         );
     }

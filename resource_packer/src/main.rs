@@ -6,7 +6,6 @@ extern crate texture_coords;
 extern crate walkdir;
 
 use std::collections::HashMap;
-use std::fs;
 use std::fs::File;
 use std::env;
 use std::io::BufWriter;

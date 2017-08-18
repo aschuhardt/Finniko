@@ -2,3 +2,5 @@
 **/*.rs.bk
 /.vscode/
 Cargo.lock
+/texture_coords/target/
+/resource_packer/target/

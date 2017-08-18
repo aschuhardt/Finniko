@@ -1,8 +1,10 @@
+use std::collections::VecDeque;
 use piston::input::{Button, Key, GenericEvent};
 use status::ControllerStatus;
 use super::{Movable, Drawable, MovementDirection, GameState, MapBuilder};
 use super::tile::TileType;
 use super::player::{self, Player};
+use super::message::{Message, MessageType};
 
 /// Stores and updates the game's current state.
 pub struct GameController {
@@ -62,6 +64,12 @@ impl GameController {
         }
     }
 
+    /// Indicates to the view whether or not it should display the message
+    /// queue to the player
+    pub fn should_show_messages(&self) -> bool {
+        self.state.show_messages
+    }
+
     /// Performs game logic routines and alters the state of the controller
     /// based on events received by the window.
     pub fn update<E>(&mut self, event: &E)
@@ -73,6 +81,9 @@ impl GameController {
             match btn {
                 Button::Keyboard(Key::F1) => {
                     self.status = Some(ControllerStatus::Resize(640u32, 480u32));
+                }
+                Button::Keyboard(Key::Tab) => {
+                    self.state.show_messages = !self.state.show_messages;
                 }
                 Button::Keyboard(Key::NumPad1) => self.move_player(DownLeft),
                 Button::Keyboard(Key::NumPad2) => self.move_player(Down),
@@ -96,43 +107,14 @@ impl GameController {
         s
     }
 
-    /// Moves the player in a specified direction, then checks whether
-    /// it is necessary to transition to a new map.
-    fn move_player(&mut self, dir: MovementDirection) {
-        match self.try_move(&self.state.player, &dir) {
-            MovementResult::Clear => self.state.player.move_toward(&dir),
-            MovementResult::MapEdge(edge_pos) => {
-                let mut offset_x = 0;
-                let mut offset_y = 0;
-                let (edge_x, edge_y) = (edge_pos[0], edge_pos[1]);
-                let (width, height) = (
-                    self.state.map.width() as i32,
-                    self.state.map.height() as i32,
-                );
-                if edge_x == -1 {
-                    self.state.player.set_x(width - 1);
-                    offset_x = -1;
-                } else if edge_x == width {
-                    self.state.player.set_x(0);
-                    offset_x = 1;
-                }
-                if edge_y == -1 {
-                    self.state.player.set_y(height - 1);
-                    offset_y = -1;
-                } else if edge_y == height {
-                    self.state.player.set_y(0);
-                    offset_y = 1;
-                }
-
-                self.state.map = self.map_builder.create_offset([offset_x, offset_y]);
-            }
-            _ => {}
-        }
-    }
-
     /// Returns a reference to the Player object stored in the controller's state.
     pub fn get_player(&self) -> &Player {
         &self.state.player
+    }
+
+    /// Returns a reference to the current queue of messages
+    pub fn get_messages(&self) -> &VecDeque<Message> {
+        &self.state.messages
     }
 
     /// Checks to see whether the target is capable of moving in the indicated
@@ -155,5 +137,51 @@ impl GameController {
         } else {
             MovementResult::MapEdge(check_position)
         }
+    }
+
+    /// Moves the player in a specified direction, then checks whether
+    /// it is necessary to transition to a new map.
+    fn move_player(&mut self, dir: MovementDirection) {
+        match self.try_move(&self.state.player, &dir) {
+            MovementResult::Clear => self.state.player.move_toward(&dir),
+            MovementResult::MapEdge(edge_pos) => self.handle_edge_movement(edge_pos),
+            _ => {}
+        }
+        let new_position = self.state.player.position;
+        self.add_new_message(
+            format!("You moved to position {:?}.", new_position),
+            MessageType::Normal,
+        );
+    }
+
+    fn handle_edge_movement(&mut self, edge_pos: [i32; 2]) {
+        let (mut offset_x, mut offset_y) = (0, 0);
+        let (edge_x, edge_y) = (edge_pos[0], edge_pos[1]);
+        let (width, height) = (
+            self.state.map.width() as i32,
+            self.state.map.height() as i32,
+        );
+        if edge_x == -1 {
+            self.state.player.set_x(width - 1);
+            offset_x = -1;
+        } else if edge_x == width {
+            self.state.player.set_x(0);
+            offset_x = 1;
+        }
+        if edge_y == -1 {
+            self.state.player.set_y(height - 1);
+            offset_y = -1;
+        } else if edge_y == height {
+            self.state.player.set_y(0);
+            offset_y = 1;
+        }
+        self.state.map = self.map_builder.create_offset([offset_x, offset_y]);
+    }
+
+    fn add_new_message(&mut self, contents: String, msg_type: MessageType) {
+        self.state.messages.push_back(Message {
+            contents: contents,
+            message_type: msg_type,
+        });
     }
 }

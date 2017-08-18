@@ -15,7 +15,6 @@ pub struct Map {
 impl Map {
     /// Creates and returns a new instance of the Map struct.
     pub fn new() -> Map {
-        info!("Map size: {:?}x{:?}", MAP_WIDTH, MAP_HEIGHT);
         Map { tiles: Map::create_tiles() }
     }
 

@@ -12,8 +12,9 @@ mod player;
 mod tile;
 mod map_builder;
 mod texture_mapper;
+mod message;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 pub use self::game_controller::GameController;
 pub use self::game_view::GameView;
 pub use self::actor::Actor;
@@ -24,6 +25,7 @@ pub use self::tile::Tile;
 pub use self::player::Player;
 pub use self::map_builder::MapBuilder;
 pub use self::texture_mapper::TextureMapper;
+pub use self::message::Message;
 
 /// The width of any given map in number of tiles.
 pub const MAP_WIDTH: i32 = 56;
@@ -106,6 +108,12 @@ pub struct GameState {
 
     /// The items currently present in the map.
     pub items: HashMap<u16, Item>,
+
+    /// A queue of messages stored for display to the player.
+    pub messages: VecDeque<Message>,
+
+    /// Indicates whether or not to show the message queue to the player.
+    pub show_messages: bool,
 }
 
 /// Helper function for mapping a starting position to a new position given a direction
@@ -149,6 +157,8 @@ impl GameState {
             actors: HashMap::<u16, Actor>::new(),
             entities: HashMap::<u16, Entity>::new(),
             items: HashMap::<u16, Item>::new(),
+            messages: VecDeque::<Message>::new(),
+            show_messages: true,
         }
     }
 }

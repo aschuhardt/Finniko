@@ -28,10 +28,6 @@ impl MapBuilder {
 
     /// Creates a new map at the specified world offset.
     pub fn create_offset(&mut self, offset: [i32; 2]) -> Map {
-        info!("Map seed: {:?}", self.seed);
-        info!("Offset: {:?}", offset);
-        info!("Generating map features...");
-
         // increment the current offset by the values in the one provided
         self.current_offset = [
             self.current_offset[0] + offset[0],
