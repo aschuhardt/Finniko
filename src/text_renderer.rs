@@ -36,19 +36,32 @@ pub struct TextRenderer {
 impl TextRenderer {
     /// Creates and returns a new instance of the TextRenderer struct.
     pub fn new() -> TextRenderer {
-        let assets = Search::ParentsThenKids(3, 3)
-            .for_folder(FONTS_DIR)
-            .unwrap();
+        let assets = Search::ParentsThenKids(3, 3).for_folder(FONTS_DIR).unwrap();
         let font_32 = BMFont::new(
-            File::open(assets.join(FONT_32)).expect(format!("Unable to open {:?}", FONT_32).as_str()),
+            File::open(assets.join(FONT_32)).expect(
+                format!(
+                    "Unable to open {:?}",
+                    FONT_32
+                ).as_str(),
+            ),
             OrdinateOrientation::TopToBottom,
         ).expect("Unable to load size-32 font");
         let font_24 = BMFont::new(
-            File::open(assets.join(FONT_24)).expect(format!("Unable to open {:?}", FONT_24).as_str()),
+            File::open(assets.join(FONT_24)).expect(
+                format!(
+                    "Unable to open {:?}",
+                    FONT_24
+                ).as_str(),
+            ),
             OrdinateOrientation::TopToBottom,
         ).expect("Unable to load size-24 font");
         let font_18 = BMFont::new(
-            File::open(assets.join(FONT_18)).expect(format!("Unable to open {:?}", FONT_18).as_str()),
+            File::open(assets.join(FONT_18)).expect(
+                format!(
+                    "Unable to open {:?}",
+                    FONT_18
+                ).as_str(),
+            ),
             OrdinateOrientation::TopToBottom,
         ).expect("Unable to load size-18 font");
         TextRenderer {

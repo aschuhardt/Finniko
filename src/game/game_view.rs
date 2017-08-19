@@ -6,11 +6,12 @@ use text_renderer::{FontSize, TextRenderer};
 
 const MESSAGE_LINE_HEIGHT: f64 = 18.0;
 const MESSAGE_LEFT_PAD: f64 = 10.0;
+const MESSAGE_VERTICAL_ADJUSTMENT: f64 = -6.0;
 
 /// Renders information about the game's current state to the screen.
 pub struct GameView {
     tm: TextureMapper,
-    text_renderer: &'static TextRenderer
+    text_renderer: &'static TextRenderer,
 }
 
 impl GameView {
@@ -89,7 +90,7 @@ impl GameView {
             );
 
             // text
-            let line_count = (screen_rect[3] as f64 / MESSAGE_LINE_HEIGHT) as usize;
+            let line_count = ((screen_h / 2.0) / MESSAGE_LINE_HEIGHT) as usize - 1;
             let messages = controller.get_messages(line_count);
             for i in 0..messages.len() {
                 let msg = &messages[i];
@@ -101,10 +102,18 @@ impl GameView {
                 };
                 let position = [
                     MESSAGE_LEFT_PAD + left_adjust,
-                    (MESSAGE_LINE_HEIGHT * (line_count - 1) as f64) - (MESSAGE_LINE_HEIGHT * i as f64),
+                    (MESSAGE_LINE_HEIGHT * line_count as f64) - (MESSAGE_LINE_HEIGHT * i as f64) +
+                        (screen_h / 2.0) + MESSAGE_VERTICAL_ADJUSTMENT,
                 ];
                 let text = msg.contents.clone();
-                self.text_renderer.draw_at(position, text, c.transform, FontSize::Size24, color, g);
+                self.text_renderer.draw_at(
+                    position,
+                    text,
+                    c.transform,
+                    FontSize::Size24,
+                    color,
+                    g,
+                );
             }
         }
     }
