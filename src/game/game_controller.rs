@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use piston::input::{Button, Key, GenericEvent};
 use status::ControllerStatus;
 use super::{Movable, Drawable, MovementDirection, GameState, MapBuilder};
@@ -114,7 +113,13 @@ impl GameController {
 
     /// Returns a collection of messages
     pub fn get_messages(&self, count: usize) -> Vec<Message> {
-        self.state.messages.clone().into_iter().rev().take(count).collect()
+        self.state
+            .messages
+            .clone()
+            .into_iter()
+            .rev()
+            .take(count)
+            .collect()
     }
 
     /// Checks to see whether the target is capable of moving in the indicated

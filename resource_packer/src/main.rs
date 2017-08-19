@@ -17,8 +17,8 @@ use texture_coords::CoordinateMap;
 
 fn main() {
     let config = TexturePackerConfig {
-        max_width: 1024,
-        max_height: 1024,
+        max_width: 512,
+        max_height: 512,
         allow_rotation: false,
         texture_outlines: false,
         border_padding: 1,

@@ -23,16 +23,6 @@ impl DebugInfoController {
         DebugInfoController { state: state }
     }
 
-    /// Sets the current FPS.
-    pub fn set_fps(&mut self, fps: usize) {
-        self.state.current_fps = fps;
-    }
-
-    /// Returns the current FPS.
-    pub fn current_fps(&self) -> &usize {
-        &self.state.current_fps
-    }
-
     /// Returns the current window size.
     pub fn window_size(&self) -> &[u32; 2] {
         &self.state.window_size
@@ -58,6 +48,16 @@ impl DebugInfoController {
     /// should be drawn to the window.
     pub fn should_draw(&self) -> &bool {
         &self.state.should_draw
+    }
+
+    /// Returns the current framerate.
+    pub fn framerate(&self) -> u32 {
+        self.state.fps_counter.framerate()
+    }
+
+    /// Updates the framerate counter.
+    pub fn fps_tick(&mut self) {
+        self.state.fps_counter.tick();
     }
 
     /// Updates the state of the DebugInfoController based on the provided

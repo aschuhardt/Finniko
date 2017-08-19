@@ -6,7 +6,6 @@ extern crate piston;
 extern crate glutin_window;
 extern crate graphics;
 extern crate opengl_graphics;
-extern crate fps_counter;
 extern crate ndarray;
 #[macro_use]
 extern crate log;
@@ -19,21 +18,29 @@ extern crate texture;
 extern crate rand;
 extern crate ndarray_parallel;
 extern crate noise;
-extern crate time;
+extern crate bmfont;
+#[macro_use]
+extern crate lazy_static;
 
-pub mod debug_info;
-pub mod game;
+mod debug_info;
+mod game;
+mod text_renderer;
 
 use piston::window::{Window, WindowSettings};
-use piston::event_loop::{Events, EventSettings};
+use piston::event_loop::{Events, EventSettings, EventLoop};
 use piston::input::RenderEvent;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
 use debug_info::{DebugInfoController, DebugInfoView};
 use game::{GameController, GameView};
+use text_renderer::TextRenderer;
 
 const WINDOW_WIDTH: u32 = 1386;
 const WINDOW_HEIGHT: u32 = 792;
+
+lazy_static! {
+    static ref TEXT_RENDERER: TextRenderer = TextRenderer::new();
+}
 
 /// Contains an Enum used for specifying state control actions by Controllers.
 mod status {
@@ -56,34 +63,30 @@ fn main() {
     // initialize window settings, events, and graphics
     let opengl = OpenGL::V3_2;
     let settings = WindowSettings::new("finniko", [WINDOW_WIDTH, WINDOW_HEIGHT])
+        .vsync(false)
         .opengl(opengl)
         .exit_on_esc(true);
     let mut window: GlutinWindow = settings.build().expect("Could not create window");
-    let mut events = Events::new(EventSettings::new());
+    let mut event_settings = EventSettings::new();
+    event_settings.set_max_fps(65);
+    let mut events = Events::new(event_settings);
     let mut gl = GlGraphics::new(opengl);
     info!(
         "Graphical systems initialized...  Using Opengl version {:?}",
         opengl
     );
 
-    // initialize fps counter
-    let mut fps = fps_counter::FPSCounter::new();
-    let mut current_fps = 0usize;
-
-    // Initialize state models
+    // initialize state models
 
     // Primary game state logic
     let mut game_controller = GameController::new();
-    let mut game_view = GameView::new();
+    let mut game_view = GameView::new(&TEXT_RENDERER);
 
     // Debug information meant to aid in troubleshooting and optimization
     let mut debug_controller = DebugInfoController::new(WINDOW_HEIGHT, WINDOW_WIDTH);
-    let mut debug_view = DebugInfoView::new();
+    let mut debug_view = DebugInfoView::new(&TEXT_RENDERER);
 
     while let Some(e) = events.next(&mut window) {
-        // update current fps in debug info controller
-        debug_controller.set_fps(current_fps);
-
         // pass event reference to controllers
         game_controller.update(&e);
         debug_controller.update(&e);
@@ -113,12 +116,11 @@ fn main() {
             gl.draw(args.viewport(), |c, g| {
                 graphics::clear([0.0; 4], g);
 
-                //update fps counter
-                current_fps = fps.tick();
-
                 //pass controller reference, context reference, and graphics instance to views
                 game_view.draw(&game_controller, &c, g);
                 debug_view.draw(&debug_controller, &c, g);
+
+                debug_controller.fps_tick();
             });
         }
     }

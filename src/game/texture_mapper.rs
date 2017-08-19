@@ -71,7 +71,6 @@ impl TextureMapper {
         };
 
         Texture::from_image(&img, &TextureSettings::new().filter(Filter::Nearest))
-        // Texture::from_path(path).unwrap_or_else(|p| panic!("Unable to load texture at {:?}", p))
     }
 
     fn load_coords() -> CoordinateMap {
@@ -79,16 +78,8 @@ impl TextureMapper {
             .for_folder(TEXTURE_DIR)
             .unwrap();
         let path = assets.join(TEXTURE_COORDS);
-        info!(
-            "Attempting to load texture coordinate map info from {:?}...",
-            path
-        );
         let file = match File::open(path.clone()) {
             Err(why) => {
-                info!(
-                    "Creating template texture coordinate map file at {:?}",
-                    path
-                );
                 TextureMapper::save_template_coords(path);
                 panic!("Unable to find texture coordinate file: {:?}", why)
             }

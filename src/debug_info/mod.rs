@@ -5,16 +5,15 @@
 
 mod debug_info_controller;
 mod debug_info_view;
+mod fps_counter;
 
 pub use self::debug_info_controller::DebugInfoController;
 pub use self::debug_info_view::DebugInfoView;
+pub use self::fps_counter::FpsCounter;
 
 /// Stores the current state of information used to track game performance
 /// and statistics.
 pub struct DebugInfo {
-    /// The frames-per-second (FPS) that the game's window is rendering.
-    pub current_fps: usize,
-
     /// The size of the window.
     pub window_size: [u32; 2],
 
@@ -30,6 +29,9 @@ pub struct DebugInfo {
 
     /// Whether or not to render the debug information onto the window.
     pub should_draw: bool,
+
+    /// Keeps track of current framerate.
+    pub fps_counter: FpsCounter,
 }
 
 impl DebugInfo {
@@ -38,12 +40,12 @@ impl DebugInfo {
     /// window_size field.
     pub fn new(window_w: u32, window_h: u32) -> DebugInfo {
         DebugInfo {
-            current_fps: 0usize,
             window_size: [window_w, window_h],
             mouse_window: [0f64, 0f64],
             mouse_relative: [0f64, 0f64],
             mouse_scroll: [0f64, 0f64],
             should_draw: cfg!(debug_assertions),
+            fps_counter: FpsCounter::new(),
         }
     }
 }

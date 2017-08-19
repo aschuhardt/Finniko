@@ -1,5 +1,5 @@
 use rand;
-use time::PreciseTime;
+use std::time::SystemTime;
 use noise::{Seedable, Fbm, NoiseModule};
 use super::map::Map;
 use super::tile::{TileType, FloorType};
@@ -36,7 +36,7 @@ impl MapBuilder {
 
         let (offset_x, offset_y) = (self.current_offset[0] as f32, self.current_offset[1] as f32);
 
-        let map_gen_start = PreciseTime::now();
+        let timer = SystemTime::now();
         let mut map = Map::new();
 
         let (width, height) = (map.width() as f32, map.height() as f32);
@@ -71,11 +71,12 @@ impl MapBuilder {
             }
         });
 
-        let total_map_gen_time = map_gen_start.to(PreciseTime::now());
-        info!(
-            "Map was generated in {:?} ms",
-            total_map_gen_time.num_milliseconds()
-        );
+        if let Ok(elapsed) = timer.elapsed() {
+            info!(
+                "Map was generated in {:?} ms",
+                elapsed.subsec_nanos() / 1_000_000
+            );
+        }
         map
     }
 }
