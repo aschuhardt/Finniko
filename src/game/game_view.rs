@@ -102,8 +102,9 @@ impl GameView {
                 };
                 let position = [
                     MESSAGE_LEFT_PAD + left_adjust,
-                    (MESSAGE_LINE_HEIGHT * line_count as f64) - (MESSAGE_LINE_HEIGHT * i as f64) +
-                        (screen_h / 2.0) + MESSAGE_VERTICAL_ADJUSTMENT,
+                    (MESSAGE_LINE_HEIGHT * line_count as f64) -
+                        (MESSAGE_LINE_HEIGHT * i as f64) + (screen_h / 2.0) +
+                        MESSAGE_VERTICAL_ADJUSTMENT,
                 ];
                 let text = msg.contents.clone();
                 self.text_renderer.draw_at(

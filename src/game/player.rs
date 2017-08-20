@@ -1,5 +1,4 @@
-use super::{Movable, MovementDirection, Inventory, Drawable};
-use super::item::Item;
+use super::{Movable, MovementDirection, Drawable};
 
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
@@ -13,10 +12,6 @@ pub struct Player {
     /// Represents an X and Y offset indicative of which tile
     /// the player is standing on.
     pub position: [i32; 2],
-
-    /// A collection of Items that can be considered to be
-    /// in the posession of the player.
-    inventory: Vec<Item>,
 }
 
 impl Player {
@@ -24,7 +19,6 @@ impl Player {
     pub fn new() -> Player {
         Player {
             position: [0; 2],
-            inventory: Vec::<Item>::new(),
         }
     }
 }
@@ -44,12 +38,6 @@ impl Movable for Player {
 
     fn set_y(&mut self, y: i32) {
         self.position = [self.position[0], y];
-    }
-}
-
-impl Inventory for Player {
-    fn get_items(&self) -> &[Item] {
-        &self.inventory.as_slice()
     }
 }
 

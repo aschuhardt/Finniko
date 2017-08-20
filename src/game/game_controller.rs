@@ -75,6 +75,7 @@ impl GameController {
     where
         E: GenericEvent,
     {
+
         if let Some(btn) = event.press_args() {
             use super::MovementDirection::*;
             match btn {

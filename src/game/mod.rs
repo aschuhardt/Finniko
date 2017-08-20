@@ -15,6 +15,8 @@ mod texture_mapper;
 mod message;
 
 use std::collections::{HashMap, VecDeque};
+use std::rc::Rc;
+use mopa;
 pub use self::game_controller::GameController;
 pub use self::game_view::GameView;
 pub use self::actor::Actor;
@@ -61,7 +63,7 @@ pub enum MovementDirection {
 }
 
 /// Implemented by structs capable of being moved in a specified direction.
-pub trait Movable {
+pub trait Movable: mopa::Any {
     /// Moves the implementor in the specified direction.
     /// The number of spaces moved is dependent on the properties
     /// of the implementor.
@@ -76,21 +78,17 @@ pub trait Movable {
     /// Sets the Y coordinate of the implementor.
     fn set_y(&mut self, y: i32);
 }
+mopafy!(Movable);
+
 
 /// Implemented by structs representing objects that can be drawn.
 /// Anything that can have an in-game sprite needs to implement this.
-pub trait Drawable {
+pub trait Drawable: mopa::Any {
     /// Returns a `String` that corresponds which sprite should be
     /// drawn for the implementation.
     fn get_sprite_key(&self) -> String;
 }
-
-/// Implemented by structs capable of posessing an inventory of Items.
-pub trait Inventory {
-    /// Returns a slice containing references to the items in the implementor's
-    /// inventory.
-    fn get_items(&self) -> &[Item];
-}
+mopafy!(Drawable);
 
 /// Stores the current state of the game.
 pub struct GameState {
@@ -101,7 +99,7 @@ pub struct GameState {
     pub map: Map,
 
     /// The Actors (enemies, NPCs, etc.) currently in the map.
-    pub actors: HashMap<u16, Actor>,
+    pub actors: HashMap<u16, Rc<Actor>>,
 
     /// The Entities (interactive objects, terrain, etc.) currently in the map.
     pub entities: HashMap<u16, Entity>,
@@ -154,7 +152,7 @@ impl GameState {
         GameState {
             player: Player::new(),
             map: map_builder.create(),
-            actors: HashMap::<u16, Actor>::new(),
+            actors: HashMap::<u16, Rc<Actor>>::new(),
             entities: HashMap::<u16, Entity>::new(),
             items: HashMap::<u16, Item>::new(),
             messages: VecDeque::<Message>::new(),

@@ -21,6 +21,8 @@ extern crate noise;
 extern crate bmfont;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate mopa;
 
 mod debug_info;
 mod game;
