@@ -1,10 +1,9 @@
-use std::rc::Rc;
 use piston::input::GenericEvent;
 use status::ControllerStatus;
 use rayon::prelude::*;
-use uuid::Uuid;
-use super::{Drawable, Actor, GameState, MapBuilder};
+use super::{Drawable, GameState, MapBuilder};
 use super::player::Player;
+use super::actor::{ActorStatus, ActorInfo};
 use super::message::{Message, MessageType};
 
 /// Stores and updates the game's current state.
@@ -56,25 +55,48 @@ impl GameController {
     where
         E: GenericEvent,
     {
-        let mut working_actors_copy = self.state.actors.clone();
-        for (_, actor_rc) in self.state.actors.iter_mut() {
-            if let Some(actor) = Rc::get_mut(actor_rc) {
-                actor.on_update(&mut working_actors_copy);
-            }
-            drop(actor_rc);
+        // build cache of actor info
+        let mut actor_info = Vec::<ActorInfo>::new();
+        for actor in self.state.actors.values() {
+            actor_info.push(ActorInfo::new(actor));
         }
 
-        if let Some(player_actor_rc) = self.state.actors.get_mut(&self.state.player_id) {
-            if let Some(player_actor) = Rc::get_mut(player_actor_rc) {
-                if let Some(ref mut player) = player_actor.downcast_mut::<Player>() {
-                    player.event_update(event, &self.state.map);
-                } else {
-                    error!("Player is unable to process events!")
-                }
-            } else {
-                error!("Unable to downcast player actor!")
+        // update actors
+        for (_, actor) in self.state.actors.iter_mut() {
+            // update
+            actor.on_update(&actor_info);
+
+            // retrieve messages
+            if let Some(messages) = actor.messages() {
+                self.state.messages.append(messages);
             }
-            drop(player_actor_rc);
+
+            // process status
+            if let Some(status) = actor.status() {
+                match status {
+                    ActorStatus::Resize(size) => {
+                        self.status = Some(ControllerStatus::Resize(size[0], size[1]));
+                    }
+                    ActorStatus::LoadMapAtRelativeOffset(offset) => {
+                        self.state.map = self.map_builder.create_offset(offset);
+                    }
+                    ActorStatus::ToggleMessageVisibility => {
+                        self.state.show_messages = !self.state.show_messages;
+                    }
+                    ActorStatus::Quit => {
+                        self.status = Some(ControllerStatus::Quit);
+                    }
+                }
+            }
+        }
+
+        // update player
+        if let Some(player_actor) = self.state.actors.get_mut(&self.state.player_id) {
+            if let Some(ref mut player) = player_actor.downcast_mut::<Player>() {
+                player.event_update(event, &self.state.map);
+            } else {
+                error!("Player is unable to process events!")
+            }
         }
     }
 
@@ -115,12 +137,5 @@ impl GameController {
             sprite_positions.push((actor.sprite_key(), actor.current_position()));
         }
         sprite_positions
-    }
-
-    fn add_new_message(&mut self, contents: String, msg_type: MessageType) {
-        self.state.messages.push_back(Message {
-            contents: contents,
-            message_type: msg_type,
-        });
     }
 }

@@ -1,8 +1,7 @@
-use std::collections::{VecDeque, HashMap};
-use std::rc::Rc;
+use std::collections::VecDeque;
 use uuid::Uuid;
 use piston::input::{Button, Key, GenericEvent};
-use super::actor::{Actor, ActorStatus, ActorType, BehaviorStyle};
+use super::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
 use super::message::MessageType;
 use super::tile::TileType;
 use super::{Message, Map, Movable, MovementResult, MovementDirection, Drawable};
@@ -165,19 +164,19 @@ impl Actor for Player {
         Ok(self.id)
     }
 
-    fn on_create(&mut self, actors: &mut HashMap<Uuid, Rc<Actor>>) {}
+    fn on_create(&mut self, actors: &Vec<ActorInfo>) {}
 
-    fn on_update(&mut self, actors: &mut HashMap<Uuid, Rc<Actor>>) {}
+    fn on_update(&mut self, actors: &Vec<ActorInfo>) {}
 
-    fn on_interact(&mut self, actors: &mut HashMap<Uuid, Rc<Actor>>) {}
+    fn on_interact(&mut self, actors: &Vec<ActorInfo>) {}
 
-    fn on_remove(&mut self, actors: &mut HashMap<Uuid, Rc<Actor>>) {}
+    fn on_remove(&mut self, actors: &Vec<ActorInfo>) {}
 
-    fn actor_type(&mut self) -> ActorType {
+    fn actor_type(&self) -> ActorType {
         ActorType::Player
     }
 
-    fn id(&mut self) -> Uuid {
+    fn id(&self) -> Uuid {
         self.id
     }
 
@@ -187,7 +186,7 @@ impl Actor for Player {
         status
     }
 
-    fn messages(&mut self) -> Option<&VecDeque<Message>> {
-        Some(&self.messages)
+    fn messages(&mut self) -> Option<&mut VecDeque<Message>> {
+        Some(&mut self.messages)
     }
 }
