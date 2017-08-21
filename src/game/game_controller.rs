@@ -103,9 +103,7 @@ impl GameController {
     /// Returns the player's current position.
     pub fn player_position(&self) -> [i32; 2] {
         if let Some(player) = self.state.actors.get(&self.state.player_id) {
-            let pos = player.current_position();
-            drop(player);
-            pos
+            player.current_position()
         } else {
             error!("Unable to retrieve player position!");
             [0; 2]
