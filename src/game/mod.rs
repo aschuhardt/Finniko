@@ -15,7 +15,6 @@ mod texture_mapper;
 mod message;
 
 use std::collections::{HashMap, VecDeque};
-use std::rc::Rc;
 use mopa;
 pub use uuid::Uuid;
 pub use self::game_controller::GameController;
