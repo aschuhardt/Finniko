@@ -49,7 +49,7 @@ impl Tile {
 }
 
 impl Drawable for Tile {
-    fn get_sprite_key(&self) -> String {
+    fn sprite_key(&self) -> String {
         let tt = &self.tile_type;
         match tt {
             &TileType::Empty => String::from("Void"),

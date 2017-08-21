@@ -17,6 +17,7 @@ mod message;
 use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 use mopa;
+pub use uuid::Uuid;
 pub use self::game_controller::GameController;
 pub use self::game_view::GameView;
 pub use self::actor::Actor;
@@ -62,6 +63,14 @@ pub enum MovementDirection {
     DownRight,
 }
 
+/// The possible results of an attempt by a Movable implementor to
+/// move in a particular direction.
+enum MovementResult {
+    Wall,
+    MapEdge([i32; 2]),
+    Clear,
+}
+
 /// Implemented by structs capable of being moved in a specified direction.
 pub trait Movable: mopa::Any {
     /// Moves the implementor in the specified direction.
@@ -86,26 +95,32 @@ mopafy!(Movable);
 pub trait Drawable: mopa::Any {
     /// Returns a `String` that corresponds which sprite should be
     /// drawn for the implementation.
-    fn get_sprite_key(&self) -> String;
+    fn sprite_key(&self) -> String;
+
+    /// If overridden, indicates whether the implementor's sprite should
+    /// be drawn.
+    fn visible(&self) -> bool {
+        true
+    }
 }
 mopafy!(Drawable);
 
 /// Stores the current state of the game.
 pub struct GameState {
-    /// Information about the current state of the player's avatar.
-    pub player: Player,
+    /// The ID of the actor instance that represents the current player.
+    pub player_id: Uuid,
 
     /// Describes the space in which the game's elements take place.
     pub map: Map,
 
     /// The Actors (enemies, NPCs, etc.) currently in the map.
-    pub actors: HashMap<u16, Rc<Actor>>,
+    pub actors: HashMap<Uuid, Rc<Actor>>,
 
     /// The Entities (interactive objects, terrain, etc.) currently in the map.
-    pub entities: HashMap<u16, Entity>,
+    pub entities: HashMap<Uuid, Entity>,
 
     /// The items currently present in the map.
-    pub items: HashMap<u16, Item>,
+    pub items: HashMap<Uuid, Item>,
 
     /// A queue of messages stored for display to the player.
     pub messages: VecDeque<Message>,
@@ -150,13 +165,21 @@ impl GameState {
     /// Creates and returns a new instance of the GameState struct.
     pub fn new(map_builder: &mut MapBuilder) -> GameState {
         GameState {
-            player: Player::new(),
+            player_id: Uuid::new_v4(),
             map: map_builder.create(),
-            actors: HashMap::<u16, Rc<Actor>>::new(),
-            entities: HashMap::<u16, Entity>::new(),
-            items: HashMap::<u16, Item>::new(),
+            actors: HashMap::<Uuid, Rc<Actor>>::new(),
+            entities: HashMap::<Uuid, Entity>::new(),
+            items: HashMap::<Uuid, Item>::new(),
             messages: VecDeque::<Message>::new(),
             show_messages: true,
-        }
+        }.add_player()
+    }
+
+    fn add_player(mut self) -> GameState {
+        self.actors.insert(
+            self.player_id,
+            Rc::new(Player::new(self.player_id)),
+        );
+        self
     }
 }

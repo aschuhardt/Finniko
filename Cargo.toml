@@ -18,8 +18,10 @@ piston2d-graphics = "*"
 piston2d-opengl_graphics = "*"
 pistoncore-glutin_window = "*"
 rand = "0.3"
+rayon = "0.8.2"
 serde_json = "1.0"
 simple_logger = "*"
+uuid = { version = "0.5", features = ["v4"] }
 
 [dependencies.texture_coords]
 path = "texture_coords"

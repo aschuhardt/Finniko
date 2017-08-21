@@ -18,11 +18,13 @@ extern crate texture;
 extern crate rand;
 extern crate ndarray_parallel;
 extern crate noise;
+extern crate rayon;
 extern crate bmfont;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate mopa;
+extern crate uuid;
 
 mod debug_info;
 mod game;

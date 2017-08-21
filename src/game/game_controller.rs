@@ -1,8 +1,10 @@
-use piston::input::{Button, Key, GenericEvent};
+use std::rc::Rc;
+use piston::input::GenericEvent;
 use status::ControllerStatus;
-use super::{Movable, Drawable, MovementDirection, GameState, MapBuilder};
-use super::tile::TileType;
-use super::player::{self, Player};
+use rayon::prelude::*;
+use uuid::Uuid;
+use super::{Drawable, Actor, GameState, MapBuilder};
+use super::player::Player;
 use super::message::{Message, MessageType};
 
 /// Stores and updates the game's current state.
@@ -10,27 +12,6 @@ pub struct GameController {
     state: GameState,
     status: Option<ControllerStatus>,
     map_builder: MapBuilder,
-}
-
-// /// Represents the menu states that the controller can be in.
-// enum MenuState {
-//     /// No menu is open.
-//     Closed,
-
-//     /// The user has paused the game with the Escape key.
-//     Paused,
-
-//     /// The user has opened their character's inventory.
-//     Inventory,
-
-//     /// The user has opened the in-game options.
-//     Options,
-// }
-
-enum MovementResult {
-    Wall,
-    MapEdge([i32; 2]),
-    Clear,
 }
 
 impl GameController {
@@ -54,7 +35,7 @@ impl GameController {
     /// Returns the sprite key for the tile at the specified position
     pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<String, String> {
         if let Some(tile) = self.state.map.get_at(position) {
-            Ok(tile.get_sprite_key())
+            Ok(tile.sprite_key())
         } else {
             Err(format!(
                 "Unable to gather sprite key for tile at {:?}",
@@ -75,27 +56,37 @@ impl GameController {
     where
         E: GenericEvent,
     {
-
-        if let Some(btn) = event.press_args() {
-            use super::MovementDirection::*;
-            match btn {
-                Button::Keyboard(Key::F1) => {
-                    self.status = Some(ControllerStatus::Resize(640u32, 480u32));
-                }
-                Button::Keyboard(Key::Tab) => {
-                    self.state.show_messages = !self.state.show_messages;
-                }
-                Button::Keyboard(Key::NumPad1) => self.move_player(DownLeft),
-                Button::Keyboard(Key::NumPad2) => self.move_player(Down),
-                Button::Keyboard(Key::NumPad3) => self.move_player(DownRight),
-                Button::Keyboard(Key::NumPad4) => self.move_player(Left),
-                Button::Keyboard(Key::NumPad5) => {}
-                Button::Keyboard(Key::NumPad6) => self.move_player(Right),
-                Button::Keyboard(Key::NumPad7) => self.move_player(UpLeft),
-                Button::Keyboard(Key::NumPad8) => self.move_player(Up),
-                Button::Keyboard(Key::NumPad9) => self.move_player(UpRight),
-                _ => {}
+        let mut working_actors_copy = self.state.actors.clone();
+        for (_, actor_rc) in self.state.actors.iter_mut() {
+            if let Some(actor) = Rc::get_mut(actor_rc) {
+                actor.on_update(&mut working_actors_copy);
             }
+            drop(actor_rc);
+        }
+
+        if let Some(player_actor_rc) = self.state.actors.get_mut(&self.state.player_id) {
+            if let Some(player_actor) = Rc::get_mut(player_actor_rc) {
+                if let Some(ref mut player) = player_actor.downcast_mut::<Player>() {
+                    player.event_update(event, &self.state.map);
+                } else {
+                    error!("Player is unable to process events!")
+                }
+            } else {
+                error!("Unable to downcast player actor!")
+            }
+            drop(player_actor_rc);
+        }
+    }
+
+    /// Returns the player's current position.
+    pub fn player_position(&self) -> [i32; 2] {
+        if let Some(player) = self.state.actors.get(&self.state.player_id) {
+            let pos = player.current_position();
+            drop(player);
+            pos
+        } else {
+            error!("Unable to retrieve player position!");
+            [0; 2]
         }
     }
 
@@ -105,11 +96,6 @@ impl GameController {
         let s = self.status.clone();
         self.status = None;
         s
-    }
-
-    /// Returns a reference to the Player object stored in the controller's state.
-    pub fn get_player(&self) -> &Player {
-        &self.state.player
     }
 
     /// Returns a collection of messages
@@ -123,65 +109,12 @@ impl GameController {
             .collect()
     }
 
-    /// Checks to see whether the target is capable of moving in the indicated
-    /// direction.
-    fn try_move<M>(&self, target: &M, dir: &MovementDirection) -> MovementResult
-    where
-        M: Movable,
-    {
-        let check_position = super::map_direction_to_position(
-            target.current_position(),
-            dir,
-            player::MOVEMENT_AMOUNT,
-        );
-        if let Some(tile) = self.state.map.get_at(check_position) {
-            if let TileType::Wall(_, _) = tile.tile_type {
-                MovementResult::Wall
-            } else {
-                MovementResult::Clear
-            }
-        } else {
-            MovementResult::MapEdge(check_position)
+    pub fn actor_sprites(&self) -> Vec<(String, [i32; 2])> {
+        let mut sprite_positions = Vec::<(String, [i32; 2])>::new();
+        for (_, actor) in self.state.actors.iter().filter(|&(_, v)| v.visible()) {
+            sprite_positions.push((actor.sprite_key(), actor.current_position()));
         }
-    }
-
-    /// Moves the player in a specified direction, then checks whether
-    /// it is necessary to transition to a new map.
-    fn move_player(&mut self, dir: MovementDirection) {
-        match self.try_move(&self.state.player, &dir) {
-            MovementResult::Clear => self.state.player.move_toward(&dir),
-            MovementResult::MapEdge(edge_pos) => self.handle_edge_movement(edge_pos),
-            _ => {}
-        }
-        let new_position = self.state.player.position;
-        self.add_new_message(
-            format!("You moved to position {:?}.", new_position),
-            MessageType::Normal,
-        );
-    }
-
-    fn handle_edge_movement(&mut self, edge_pos: [i32; 2]) {
-        let (mut offset_x, mut offset_y) = (0, 0);
-        let (edge_x, edge_y) = (edge_pos[0], edge_pos[1]);
-        let (width, height) = (
-            self.state.map.width() as i32,
-            self.state.map.height() as i32,
-        );
-        if edge_x == -1 {
-            self.state.player.set_x(width - 1);
-            offset_x = -1;
-        } else if edge_x == width {
-            self.state.player.set_x(0);
-            offset_x = 1;
-        }
-        if edge_y == -1 {
-            self.state.player.set_y(height - 1);
-            offset_y = -1;
-        } else if edge_y == height {
-            self.state.player.set_y(0);
-            offset_y = 1;
-        }
-        self.state.map = self.map_builder.create_offset([offset_x, offset_y]);
+        sprite_positions
     }
 
     fn add_new_message(&mut self, contents: String, msg_type: MessageType) {

@@ -1,10 +1,12 @@
 use std::rc::Rc;
 use std::any::Any;
+use std::collections::{VecDeque, HashMap};
 use mopa;
-use super::{Drawable, Movable, MovementDirection};
+use uuid::Uuid;
+use super::{Drawable, Message, Movable, MovementDirection};
 
 /// Dictates which set of behavior patterns the actor will exhibit
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BehaviorStyle {
     Friendly,
     Oblivious,
@@ -14,12 +16,19 @@ pub enum BehaviorStyle {
 }
 
 /// Markers for the various types of actors that are available
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ActorType {
     Player,
     Soldier,
-    Mercenary,
-    Android,
+}
+
+/// Used by Actor implementations to force their controller to perform
+/// some action
+#[derive(Debug, Clone)]
+pub enum ActorStatus {
+    Resize([u32; 2]),
+    LoadMapAtRelativeOffset([i32; 2]),
+    ToggleMessageVisibility,
 }
 
 /// Stores information pertaining to a single actor in the game's
@@ -28,47 +37,33 @@ pub enum ActorType {
 ///Examples of actors include enemies, NPCs, creatures, etc.
 pub trait Actor: mopa::Any + Drawable + Movable {
     /// Initializes the actor and returns its new ID
-    fn init(&mut self, position: [i32; 2], behavior: BehaviorStyle) -> Result<u16, String>;
-
-    /// Checks whether the Actor's `on_create` function has been called
-    fn is_new(&self);
-
-    fn move_direction(&self) -> Option<MovementDirection>;
+    fn init(&mut self, position: [i32; 2], behavior: BehaviorStyle) -> Result<Uuid, String>;
 
     /// Called when the object is created, after it is initialized
-    fn on_create(&mut self);
+    fn on_create(&mut self, actors: &mut HashMap<Uuid, Rc<Actor>>);
 
     /// Called on each update tick
-    fn on_update(&mut self);
+    fn on_update(&mut self, actors: &mut HashMap<Uuid, Rc<Actor>>);
 
     /// Called when interacted with by another Actor
-    fn on_interact(&mut self);
+    fn on_interact(&mut self, actors: &mut HashMap<Uuid, Rc<Actor>>);
 
     /// Called before the Actor is removed from game state
-    fn on_remove(&mut self);
+    fn on_remove(&mut self, actors: &mut HashMap<Uuid, Rc<Actor>>);
 
     /// Returns a marker indicating what type of actor this is
     fn actor_type(&mut self) -> ActorType;
 
-    fn id(&mut self) -> u16;
-}
-mopafy!(Actor);
+    /// Returns the numerical ID of the Actor
+    fn id(&mut self) -> Uuid;
 
-pub fn downcast<A: Actor + Any, F>(actor: &mut Rc<Actor>, mut op: F)
-where
-    F: FnMut(&mut A),
-{
-    if let Some(a) = Rc::get_mut(actor) {
-        let actor_type = a.actor_type();
-        let id = a.id();
-        if let Some(ref mut concrete) = a.downcast_mut::<A>() {
-            op(concrete);
-        } else {
-            error!(
-                "Could not downcast Actor (type marker: {:?}) with ID {:?}",
-                actor_type,
-                id
-            )
-        }
+    /// Returns the implementor's current `ActorStatus` if one exists
+    fn status(&mut self) -> Option<ActorStatus> {
+        None
+    }
+
+    fn messages(&mut self) -> Option<&VecDeque<Message>> {
+        None
     }
 }
+mopafy!(Actor);

@@ -54,19 +54,20 @@ impl GameView {
             }
         }
 
-        // draw player
-        let player = controller.get_player();
-        self.tm.draw_at(
-            [
-                player.position[0] as f64 * tile_w,
-                player.position[1] as f64 * tile_h,
-                tile_w,
-                tile_h,
-            ],
-            &player.get_sprite_key(),
-            c.transform,
-            g,
-        );
+        // draw actors (this includes the player)
+        for (key, position) in controller.actor_sprites() {
+            self.tm.draw_at(
+                [
+                    position[0] as f64 * tile_w,
+                    position[1] as f64 * tile_h,
+                    tile_w,
+                    tile_h,
+                ],
+                &key,
+                c.transform,
+                g,
+            );
+        }
 
         // draw message
         if controller.should_show_messages() {
@@ -77,7 +78,7 @@ impl GameView {
             // check which side of the screen the player is on,
             // and adjust the position of message box accordingly
             let mut left_adjust = 0.0;
-            let player_x = controller.get_player().position[0] as f64;
+            let player_x = controller.player_position()[0] as f64;
             if player_x * tile_w < screen_w / 2.0 {
                 left_adjust = screen_w - (screen_w / 4.0);
             }

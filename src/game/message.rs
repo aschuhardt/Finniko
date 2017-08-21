@@ -12,7 +12,7 @@ pub const MESSAGE_COLOR_BACKGROUND: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
 
 /// Represents different styles of message, indicating how text should
 /// be displayed.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum MessageType {
     Normal,
     Danger,
