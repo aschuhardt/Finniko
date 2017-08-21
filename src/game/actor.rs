@@ -1,9 +1,8 @@
-use std::rc::Rc;
-use std::any::Any;
-use std::collections::{VecDeque, HashMap};
+use std::collections::VecDeque;
 use mopa;
 use uuid::Uuid;
-use super::{Drawable, Message, Movable, MovementDirection};
+use super::{Drawable, Message, Movable};
+use super::actors::*;
 
 /// Dictates which set of behavior patterns the actor will exhibit
 #[derive(Debug, Clone)]
@@ -29,6 +28,7 @@ pub enum ActorStatus {
     Resize([u32; 2]),
     LoadMapAtRelativeOffset([i32; 2]),
     ToggleMessageVisibility,
+    SpawnActorAt(ActorType, [i32; 2]),
     Quit,
 }
 
@@ -60,7 +60,7 @@ pub trait Actor: mopa::Any + Drawable + Movable {
     fn init(&mut self, position: [i32; 2], behavior: BehaviorStyle) -> Result<Uuid, String>;
 
     /// Called when the object is created, after it is initialized
-    fn on_create(&mut self, actors: &Vec<ActorInfo>);
+    fn on_create(&mut self);
 
     /// Called on each update tick
     fn on_update(&mut self, actors: &Vec<ActorInfo>);
@@ -82,8 +82,18 @@ pub trait Actor: mopa::Any + Drawable + Movable {
         None
     }
 
+    /// Returns the implementor's queue of messages
     fn messages(&mut self) -> Option<&mut VecDeque<Message>> {
         None
     }
 }
 mopafy!(Actor);
+
+pub fn create(actor_type: ActorType) -> Box<Actor> {
+    let mut actor: Box<Actor> = match actor_type {
+        ActorType::Player => Box::new(player::Player::new(Uuid::new_v4())),
+        ActorType::Soldier => Box::new(soldier::Soldier::new()),
+    };
+    actor.on_create();
+    actor
+}

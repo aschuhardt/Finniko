@@ -3,12 +3,12 @@
 //! The core state and logic controlling the game.
 
 mod actor;
+mod actors;
 mod entity;
 mod game_controller;
 mod game_view;
 mod item;
 mod map;
-mod player;
 mod tile;
 mod map_builder;
 mod texture_mapper;
@@ -24,7 +24,6 @@ pub use self::entity::Entity;
 pub use self::item::Item;
 pub use self::map::Map;
 pub use self::tile::Tile;
-pub use self::player::Player;
 pub use self::map_builder::MapBuilder;
 pub use self::texture_mapper::TextureMapper;
 pub use self::message::Message;
@@ -175,10 +174,11 @@ impl GameState {
     }
 
     fn add_player(mut self) -> GameState {
-        self.actors.insert(
-            self.player_id,
-            Box::new(Player::new(self.player_id)),
-        );
+        use self::actor::ActorType;
+        let player = actor::create(ActorType::Player);
+        self.player_id = player.id();
+        info!("Player ID: {}", self.player_id);
+        self.actors.insert(self.player_id, player);
         self
     }
 }

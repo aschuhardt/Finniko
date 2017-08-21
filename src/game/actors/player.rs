@@ -1,15 +1,16 @@
 use std::collections::VecDeque;
 use uuid::Uuid;
 use piston::input::{Button, Key, GenericEvent};
-use super::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
-use super::message::MessageType;
-use super::tile::TileType;
-use super::{Message, Map, Movable, MovementResult, MovementDirection, Drawable};
+use game;
+use game::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
+use game::message::MessageType;
+use game::tile::TileType;
+use game::{Message, Map, Movable, MovementResult, MovementDirection, Drawable};
 
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
 
-const SPRITE_KEY: &'static str = "37";
+const SPRITE_KEY: &'static str = "21";
 
 /// Stores information and statistics pertaining to the
 /// player's avatar.
@@ -34,10 +35,10 @@ impl Player {
     /// Allows the Player actor to process input events
     pub fn event_update<G: GenericEvent>(&mut self, event: &G, map: &Map) {
         if let Some(btn) = event.press_args() {
-            use super::MovementDirection::*;
+            use game::MovementDirection::*;
             match btn {
                 Button::Keyboard(Key::F1) => {
-                    self.status = Some(ActorStatus::Resize([640u32, 480u32]));
+                    self.status = Some(ActorStatus::SpawnActorAt(ActorType::Soldier, [10, 10]));
                 }
                 Button::Keyboard(Key::Tab) => {
                     self.status = Some(ActorStatus::ToggleMessageVisibility);
@@ -83,7 +84,7 @@ impl Player {
         }
         let new_position = self.position;
         self.messages.push_back(Message {
-            contents: format!("Player to position {:?}.", new_position),
+            contents: format!("Player moved to position {:?}.", new_position),
             message_type: MessageType::Normal,
         });
     }
@@ -122,7 +123,7 @@ impl Player {
 
     fn try_move(&mut self, map: &Map, dir: &MovementDirection) -> MovementResult {
         let check_position =
-            super::map_direction_to_position(self.current_position(), dir, MOVEMENT_AMOUNT);
+            game::map_direction_to_position(self.current_position(), dir, MOVEMENT_AMOUNT);
         if let Some(tile) = map.get_at(check_position) {
             if let TileType::Wall(_, _) = tile.tile_type {
                 MovementResult::Wall
@@ -137,7 +138,7 @@ impl Player {
 
 impl Movable for Player {
     fn move_toward(&mut self, dir: &MovementDirection) {
-        self.position = super::map_direction_to_position(self.position, dir, MOVEMENT_AMOUNT);
+        self.position = game::map_direction_to_position(self.position, dir, MOVEMENT_AMOUNT);
     }
 
     fn current_position(&self) -> [i32; 2] {
@@ -164,7 +165,7 @@ impl Actor for Player {
         Ok(self.id)
     }
 
-    fn on_create(&mut self, actors: &Vec<ActorInfo>) {}
+    fn on_create(&mut self) {}
 
     fn on_update(&mut self, actors: &Vec<ActorInfo>) {}
 

@@ -5,6 +5,7 @@
 extern crate piston;
 extern crate glutin_window;
 extern crate graphics;
+extern crate hyphenation;
 extern crate opengl_graphics;
 extern crate ndarray;
 #[macro_use]
@@ -24,6 +25,7 @@ extern crate bmfont;
 extern crate lazy_static;
 #[macro_use]
 extern crate mopa;
+extern crate textwrap;
 extern crate uuid;
 
 mod debug_info;

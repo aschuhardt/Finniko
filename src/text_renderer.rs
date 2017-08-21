@@ -115,6 +115,15 @@ impl TextRenderer {
         }
     }
 
+    /// Returns the line-height corresponding to a given font size
+    pub fn line_height(&self, size: FontSize) -> u32 {
+        match size {
+            FontSize::Size32 => self.font_32.line_height(),
+            FontSize::Size24 => self.font_24.line_height(),
+            FontSize::Size18 => self.font_18.line_height(),
+        }
+    }
+
     fn load_texture(path: PathBuf) -> Texture {
         let img = match image::open(path) {
             Ok(img) => img,

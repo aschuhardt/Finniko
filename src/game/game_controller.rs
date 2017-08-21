@@ -1,16 +1,23 @@
+use std::collections::VecDeque;
 use piston::input::GenericEvent;
 use status::ControllerStatus;
 use rayon::prelude::*;
 use super::{Drawable, GameState, MapBuilder};
-use super::player::Player;
-use super::actor::{ActorStatus, ActorInfo};
-use super::message::{Message, MessageType};
+use super::actor;
+use super::actor::{Actor, ActorStatus, ActorInfo};
+use super::actors::player::Player;
+use super::message::Message;
 
 /// Stores and updates the game's current state.
 pub struct GameController {
     state: GameState,
     status: Option<ControllerStatus>,
     map_builder: MapBuilder,
+    actions: VecDeque<Action>,
+}
+
+enum Action {
+    Spawn(Box<Actor>),
 }
 
 impl GameController {
@@ -28,6 +35,7 @@ impl GameController {
             state: state,
             status: None,
             map_builder: map_builder,
+            actions: VecDeque::<Action>::new(),
         }
     }
 
@@ -55,49 +63,9 @@ impl GameController {
     where
         E: GenericEvent,
     {
-        // build cache of actor info
-        let mut actor_info = Vec::<ActorInfo>::new();
-        for actor in self.state.actors.values() {
-            actor_info.push(ActorInfo::new(actor));
-        }
-
-        // update actors
-        for (_, actor) in self.state.actors.iter_mut() {
-            // update
-            actor.on_update(&actor_info);
-
-            // retrieve messages
-            if let Some(messages) = actor.messages() {
-                self.state.messages.append(messages);
-            }
-
-            // process status
-            if let Some(status) = actor.status() {
-                match status {
-                    ActorStatus::Resize(size) => {
-                        self.status = Some(ControllerStatus::Resize(size[0], size[1]));
-                    }
-                    ActorStatus::LoadMapAtRelativeOffset(offset) => {
-                        self.state.map = self.map_builder.create_offset(offset);
-                    }
-                    ActorStatus::ToggleMessageVisibility => {
-                        self.state.show_messages = !self.state.show_messages;
-                    }
-                    ActorStatus::Quit => {
-                        self.status = Some(ControllerStatus::Quit);
-                    }
-                }
-            }
-        }
-
-        // update player
-        if let Some(player_actor) = self.state.actors.get_mut(&self.state.player_id) {
-            if let Some(ref mut player) = player_actor.downcast_mut::<Player>() {
-                player.event_update(event, &self.state.map);
-            } else {
-                error!("Player is unable to process events!")
-            }
-        }
+        self.update_actors();
+        self.update_player(event);
+        self.perform_actions();
     }
 
     /// Returns the player's current position.
@@ -135,5 +103,70 @@ impl GameController {
             sprite_positions.push((actor.sprite_key(), actor.current_position()));
         }
         sprite_positions
+    }
+
+    fn perform_actions(&mut self) {
+        for action in self.actions.drain(..) {
+            match action {
+                Action::Spawn(actor) => {
+                    self.state.actors.insert(actor.id(), actor);
+                }
+            }
+        }
+    }
+
+    fn update_player<E: GenericEvent>(&mut self, event: &E) {
+        // update player
+        if let Some(player_actor) = self.state.actors.get_mut(&self.state.player_id) {
+            if let Some(ref mut player) = player_actor.downcast_mut::<Player>() {
+                player.event_update(event, &self.state.map);
+            } else {
+                error!("Player is unable to process events!")
+            }
+        }
+    }
+
+    fn update_actors(&mut self) {
+        // build cache of actor info
+        let mut actor_info = Vec::<ActorInfo>::new();
+        for actor in self.state.actors.values() {
+            actor_info.push(ActorInfo::new(actor));
+        }
+
+        // update actors
+        for (_, actor) in self.state.actors.iter_mut() {
+            // update
+            actor.on_update(&actor_info);
+
+            // retrieve messages
+            if let Some(messages) = actor.messages() {
+                self.state.messages.append(messages);
+            }
+
+            // process status
+            if let Some(status) = actor.status() {
+                info!("Got actor status {:?} from id {}", status, actor.id());
+                match status {
+                    ActorStatus::Resize(size) => {
+                        self.status = Some(ControllerStatus::Resize(size[0], size[1]));
+                    }
+                    ActorStatus::LoadMapAtRelativeOffset(offset) => {
+                        self.state.map = self.map_builder.create_offset(offset);
+                    }
+                    ActorStatus::ToggleMessageVisibility => {
+                        self.state.show_messages = !self.state.show_messages;
+                    }
+                    ActorStatus::SpawnActorAt(actor_type, position) => {
+                        let mut spawned = actor::create(actor_type);
+                        spawned.set_x(position[0]);
+                        spawned.set_y(position[1]);
+                        self.actions.push_back(Action::Spawn(spawned));
+                    }
+                    ActorStatus::Quit => {
+                        self.status = Some(ControllerStatus::Quit);
+                    }
+                }
+            }
+        }
     }
 }

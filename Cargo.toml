@@ -5,6 +5,7 @@ version = "0.1.0"
 [dependencies]
 bmfont = "*"
 find_folder = "*"
+hyphenation = "*"
 image = "*"
 lazy_static = "*"
 log = "*"
@@ -21,6 +22,7 @@ rand = "0.3"
 rayon = "0.8.2"
 serde_json = "1.0"
 simple_logger = "*"
+textwrap = { version = "0.7", features = ["hyphenation"] }
 uuid = { version = "0.5", features = ["v4"] }
 
 [dependencies.texture_coords]
