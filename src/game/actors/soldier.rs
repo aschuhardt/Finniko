@@ -92,7 +92,7 @@ impl Actor for Soldier {
                         return false;
                     } else {
                         return distance_from_destination <= PERSONAL_SPACE &&
-                            distance_from_player < PERSONAL_SPACE;
+                            distance_from_player > PERSONAL_SPACE;
                     }
                 })
                 {
