@@ -15,7 +15,7 @@ pub enum BehaviorStyle {
 }
 
 /// Markers for the various types of actors that are available
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ActorType {
     Player,
     Soldier,
@@ -33,10 +33,11 @@ pub enum ActorStatus {
 }
 
 /// Used as a means of communicating information about actors to other actors.
+#[derive(Debug)]
 pub struct ActorInfo {
-    id: Uuid,
-    actor_type: ActorType,
-    position: [i32; 2],
+    pub id: Uuid,
+    pub actor_type: ActorType,
+    pub position: [i32; 2],
 }
 
 impl ActorInfo {

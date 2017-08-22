@@ -19,6 +19,7 @@ pub struct Player {
     id: Uuid,
     status: Option<ActorStatus>,
     messages: VecDeque<Message>,
+    ticks: Option<u32>,
 }
 
 impl Player {
@@ -29,7 +30,14 @@ impl Player {
             id: id,
             status: None,
             messages: VecDeque::<Message>::new(),
+            ticks: None,
         }
+    }
+
+    pub fn ticks(&mut self) -> Option<u32> {
+        let ticks = self.ticks.clone();
+        self.ticks = None;
+        ticks
     }
 
     /// Allows the Player actor to process input events
@@ -67,13 +75,16 @@ impl Player {
                 Button::Keyboard(Key::NumPad9) => {
                     self.input_move(map, UpRight);
                 }
+                Button::Keyboard(Key::NumPad0) => {
+                    self.perform_ticks(1);
+                }
                 _ => {}
             }
         }
     }
 
     fn input_move(&mut self, map: &Map, dir: MovementDirection) {
-        match self.try_move(map, &dir) {
+        match game::try_move(self, map, &dir, MOVEMENT_AMOUNT) {
             MovementResult::Clear => self.move_toward(&dir),
             MovementResult::MapEdge(edge_pos) => {
                 self.move_over_edge(map, edge_pos.clone());
@@ -87,6 +98,11 @@ impl Player {
             contents: format!("Player moved to position {:?}.", new_position),
             message_type: MessageType::Normal,
         });
+        self.perform_ticks(1);
+    }
+
+    fn perform_ticks(&mut self, count: u32) {
+        self.ticks = Some(count);
     }
 
     fn move_over_edge(&mut self, map: &Map, edge_pos: [i32; 2]) {
@@ -120,20 +136,6 @@ impl Player {
         }
         [offset_x, offset_y]
     }
-
-    fn try_move(&mut self, map: &Map, dir: &MovementDirection) -> MovementResult {
-        let check_position =
-            game::map_direction_to_position(self.current_position(), dir, MOVEMENT_AMOUNT);
-        if let Some(tile) = map.get_at(check_position) {
-            if let TileType::Wall(_, _) = tile.tile_type {
-                MovementResult::Wall
-            } else {
-                MovementResult::Clear
-            }
-        } else {
-            MovementResult::MapEdge(check_position)
-        }
-    }
 }
 
 impl Movable for Player {
@@ -165,7 +167,12 @@ impl Actor for Player {
         Ok(self.id)
     }
 
-    fn on_create(&mut self) {}
+    fn on_create(&mut self) {
+        self.messages.push_back(Message {
+            contents: String::from("Welcome!"),
+            message_type: MessageType::Background,
+        });
+    }
 
     fn on_update(&mut self, actors: &Vec<ActorInfo>) {}
 

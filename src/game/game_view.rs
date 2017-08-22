@@ -8,7 +8,8 @@ use text_renderer::{FontSize, TextRenderer};
 
 const MESSAGE_LEFT_PAD: f64 = 10.0;
 const MESSAGE_VERTICAL_ADJUSTMENT: f64 = -6.0;
-const TEXT_WRAP_WIDTH: usize = 33;
+const TEXT_WRAP_WIDTH: usize = 24;
+const MESSAGE_DISPLAY_WIDTH: f64 = 250.0;
 
 /// Renders information about the game's current state to the screen.
 pub struct GameView {
@@ -87,24 +88,25 @@ impl GameView {
             let mut left_adjust = 0.0;
             let player_x = controller.player_position()[0] as f64;
             if player_x * tile_w < screen_w / 2.0 {
-                left_adjust = screen_w - (screen_w / 4.0);
+                left_adjust = screen_w - MESSAGE_DISPLAY_WIDTH;
             }
 
             graphics::rectangle(
                 [0.1, 0.1, 0.1, 0.9],
-                [left_adjust, 0.0, screen_w / 4.0, screen_h],
+                [left_adjust, 0.0, MESSAGE_DISPLAY_WIDTH, screen_h],
                 c.transform,
                 g,
             );
 
-            // text
+            // draw messages
             let line_count = ((screen_h / 2.0) / line_height) as usize - 1;
             let messages = controller.get_messages(line_count);
             let mut lines = 0usize;
             let mut msg_index = 0usize;
             'outer: while lines < line_count && msg_index < messages.len() {
                 let msg = &messages[msg_index];
-                let wrapped_text = self.text_wrapper.fill(msg.contents.as_str());
+                let mut wrapped_text = String::from("**");
+                wrapped_text.push_str(self.text_wrapper.fill(msg.contents.as_str()).as_str());
 
                 for line in wrapped_text.split('\n').rev() {
                     let color = match msg.message_type {
@@ -134,7 +136,6 @@ impl GameView {
                         break 'outer;
                     }
                 }
-
 
                 msg_index += 1;
             }

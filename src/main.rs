@@ -8,6 +8,7 @@ extern crate graphics;
 extern crate hyphenation;
 extern crate opengl_graphics;
 extern crate ndarray;
+extern crate bresenham;
 #[macro_use]
 extern crate log;
 extern crate simple_logger;

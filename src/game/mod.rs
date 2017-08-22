@@ -63,7 +63,7 @@ pub enum MovementDirection {
 
 /// The possible results of an attempt by a Movable implementor to
 /// move in a particular direction.
-enum MovementResult {
+pub enum MovementResult {
     Wall,
     MapEdge([i32; 2]),
     Clear,
@@ -157,6 +157,25 @@ fn map_direction_to_position(
         starting_position[0] + (delta.0 * spaces),
         starting_position[1] + (delta.1 * spaces),
     ]
+}
+
+pub fn try_move<M: Movable>(
+    subject: &M,
+    map: &Map,
+    dir: &MovementDirection,
+    spaces: i32,
+) -> MovementResult {
+    let check_position = map_direction_to_position(subject.current_position(), dir, spaces);
+    if let Some(tile) = map.get_at(check_position) {
+        use self::tile::TileType;
+        if let TileType::Wall(_, _) = tile.tile_type {
+            MovementResult::Wall
+        } else {
+            MovementResult::Clear
+        }
+    } else {
+        MovementResult::MapEdge(check_position)
+    }
 }
 
 impl GameState {

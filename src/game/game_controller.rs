@@ -14,6 +14,7 @@ pub struct GameController {
     status: Option<ControllerStatus>,
     map_builder: MapBuilder,
     actions: VecDeque<Action>,
+    ticks_to_perform: u32,
 }
 
 enum Action {
@@ -36,6 +37,7 @@ impl GameController {
             status: None,
             map_builder: map_builder,
             actions: VecDeque::<Action>::new(),
+            ticks_to_perform: 0,
         }
     }
 
@@ -63,9 +65,15 @@ impl GameController {
     where
         E: GenericEvent,
     {
-        self.update_actors();
         self.update_player(event);
-        self.perform_actions();
+
+        if self.ticks_to_perform > 0 {
+            for _ in 0..self.ticks_to_perform {
+                self.update_actors();
+                self.perform_actions();
+            }
+            self.ticks_to_perform = 0;
+        }
     }
 
     /// Returns the player's current position.
@@ -120,6 +128,9 @@ impl GameController {
         if let Some(player_actor) = self.state.actors.get_mut(&self.state.player_id) {
             if let Some(ref mut player) = player_actor.downcast_mut::<Player>() {
                 player.event_update(event, &self.state.map);
+                if let Some(count) = player.ticks() {
+                    self.ticks_to_perform = count;
+                }
             } else {
                 error!("Player is unable to process events!")
             }
@@ -145,7 +156,6 @@ impl GameController {
 
             // process status
             if let Some(status) = actor.status() {
-                info!("Got actor status {:?} from id {}", status, actor.id());
                 match status {
                     ActorStatus::Resize(size) => {
                         self.status = Some(ControllerStatus::Resize(size[0], size[1]));
