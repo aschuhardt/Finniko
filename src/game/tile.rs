@@ -9,7 +9,80 @@ pub enum TileType {
 
 #[derive(Clone)]
 pub enum WallOrientation {
+    /*0X0
+      0X0
+      0X0*/
+    Vertical,
 
+    /*000
+      XXX
+      000*/
+    Horizontal,
+
+    /*000
+      0XX
+      000*/
+    EndLeftHorizontal,
+
+    /*0X0
+      0X0
+      000*/
+    EndLowerVertical,
+
+    /*0X0
+      0XX
+      000*/
+    CornerLeftLower,
+
+    /*0X0
+      XXX
+      000*/
+    TeeLower,
+
+    /*0X0
+      XX0
+      000*/
+    CornerRightLower,
+
+    /*0X0
+      XXX
+      0X0*/
+    Cross,
+
+    /*000
+      XX0
+      000*/
+    EndRightHorizontal,
+
+    /*000
+      0X0
+      0X0*/
+    EndUpperVertical,
+
+    /*000
+      0XX
+      0X0*/
+    CornerLeftUpper,
+
+    /*000
+      XXX
+      0X0*/
+    TeeUpper,
+
+    /*000
+      XX0
+      0X0*/
+    CornerRightUpper,
+
+    /*0X0
+      XX0
+      0X0*/
+    TeeRight,
+
+    /*0X0
+      0XX
+      0X0*/
+    TeeLeft,
 }
 
 #[derive(Clone)]
