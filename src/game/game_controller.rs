@@ -42,9 +42,9 @@ impl GameController {
     }
 
     /// Returns the sprite key for the tile at the specified position
-    pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<String, String> {
+    pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<(String, [f32; 4]), String> {
         if let Some(tile) = self.state.map.get_at(position) {
-            Ok(tile.sprite_key())
+            Ok(tile.sprite_components())
         } else {
             Err(format!(
                 "Unable to gather sprite key for tile at {:?}",
@@ -105,10 +105,10 @@ impl GameController {
             .collect()
     }
 
-    pub fn actor_sprites(&self) -> Vec<(String, [i32; 2])> {
-        let mut sprite_positions = Vec::<(String, [i32; 2])>::new();
+    pub fn actor_sprites(&self) -> Vec<((String, [f32; 4]), [i32; 2])> {
+        let mut sprite_positions = Vec::<((String, [f32; 4]), [i32; 2])>::new();
         for (_, actor) in self.state.actors.iter().filter(|&(_, v)| v.visible()) {
-            sprite_positions.push((actor.sprite_key(), actor.current_position()));
+            sprite_positions.push((actor.sprite_components(), actor.current_position()));
         }
         sprite_positions
     }

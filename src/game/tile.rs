@@ -9,85 +9,15 @@ pub enum TileType {
 
 #[derive(Clone)]
 pub enum WallOrientation {
-    /*0X0
-      0X0
-      0X0*/
-    Vertical,
-
-    /*000
-      XXX
-      000*/
-    Horizontal,
-
-    /*000
-      0XX
-      000*/
-    EndLeftHorizontal,
-
-    /*0X0
-      0X0
-      000*/
-    EndLowerVertical,
-
-    /*0X0
-      0XX
-      000*/
-    CornerLeftLower,
-
-    /*0X0
-      XXX
-      000*/
-    TeeLower,
-
-    /*0X0
-      XX0
-      000*/
-    CornerRightLower,
-
-    /*0X0
-      XXX
-      0X0*/
-    Cross,
-
-    /*000
-      XX0
-      000*/
-    EndRightHorizontal,
-
-    /*000
-      0X0
-      0X0*/
-    EndUpperVertical,
-
-    /*000
-      0XX
-      0X0*/
-    CornerLeftUpper,
-
-    /*000
-      XXX
-      0X0*/
-    TeeUpper,
-
-    /*000
-      XX0
-      0X0*/
-    CornerRightUpper,
-
-    /*0X0
-      XX0
-      0X0*/
-    TeeRight,
-
-    /*0X0
-      0XX
-      0X0*/
-    TeeLeft,
+    Face,
+    Top,
 }
 
 #[derive(Clone)]
 pub enum WallType {
-    Basic,
+    Brick,
+    Stone,
+    Adobe,
 }
 
 #[derive(Clone)]
@@ -95,9 +25,11 @@ pub enum FloorType {
     Dirt,
     Stone,
     Grass,
-    TileBlue,
-    TileBeige,
-    Concrete,
+    Gravel,
+    Wood,
+    Overgrown,
+    Water,
+    Mud,
 }
 
 /// Represents a unit of space within the game's map.
@@ -111,8 +43,7 @@ pub struct Tile {
 }
 
 impl Tile {
-    /// Creates and returns a new instance of the Tile struct with its tile type
-    /// set to `TileType::Empty`.
+    /// Creates and returns a new instance of the Tile struct
     pub fn new() -> Tile {
         Tile {
             tile_type: TileType::Floor(FloorType::Dirt),
@@ -122,19 +53,32 @@ impl Tile {
 }
 
 impl Drawable for Tile {
-    fn sprite_key(&self) -> String {
+    fn sprite_components(&self) -> (String, [f32; 4]) {
         let tt = &self.tile_type;
         match tt {
-            &TileType::Empty => String::from("Void"),
-            &TileType::Wall(_, _) => String::from(""),
+            &TileType::Empty => (String::from("void"), [0.0; 4]),
+            &TileType::Wall(ref orientation, ref style) => {
+                let key = match orientation {
+                    &WallOrientation::Face => String::from("wall_face"),
+                    &WallOrientation::Top => String::from("wall_top"),
+                };
+                let color = match style {
+                    &WallType::Brick => [1.0, 1.0, 1.0, 1.0],
+                    &WallType::Stone => [1.0, 1.0, 1.0, 1.0],
+                    &WallType::Adobe => [1.0, 1.0, 1.0, 1.0],
+                };
+                (key, color)
+            }
             &TileType::Floor(ref style) => {
                 match style {
-                    &FloorType::Concrete => String::from("16 16 Light Stone"),
-                    &FloorType::Dirt => String::from("16 16 Dark Sand"),
-                    &FloorType::Grass => String::from("16 16 Light Grass"),
-                    &FloorType::Stone => String::from("16 16 Stone Brick"),
-                    &FloorType::TileBeige => String::from("biege brick floor"),
-                    &FloorType::TileBlue => String::from("floor tile 2"),
+                    &FloorType::Dirt => (String::from("ground"), [0.525, 0.408, 0.29, 1.0]),
+                    &FloorType::Stone => (String::from("brick"), [0.267, 0.427, 0.416, 1.0]),
+                    &FloorType::Grass => (String::from("ground"), [0.224, 0.408, 0.247, 1.0]),
+                    &FloorType::Gravel => (String::from("ground"), [0.176, 0.153, 0.137, 1.0]),
+                    &FloorType::Wood => (String::from("wood"), [0.675, 0.49, 0.333, 1.0]),
+                    &FloorType::Overgrown => (String::from("plant"), [0.078, 0.314, 0.165, 1.0]),
+                    &FloorType::Water => (String::from("fluid"), [0.067, 0.224, 0.588, 1.0]),
+                    &FloorType::Mud => (String::from("fluid"), [0.216, 0.149, 0.11, 1.0]),
                 }
             }
         }

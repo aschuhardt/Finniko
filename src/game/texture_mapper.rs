@@ -41,11 +41,12 @@ impl TextureMapper {
         &self,
         destination: R,
         key: &String,
+        color: [f32; 4],
         transform: Matrix2d,
         g: &mut GlGraphics,
     ) {
         if self.coords.map.contains_key(key) {
-            Image::new()
+            Image::new_color(color)
                 .src_rect(self.coords.map[key])
                 .rect(destination)
                 .draw(&self.texture, &self.draw_state, transform, g);

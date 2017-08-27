@@ -42,7 +42,7 @@ impl GameView {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 match controller.tile_sprite_at([x as i32, y as i32]) {
-                    Ok(tile_sprite) => {
+                    Ok((tile_sprite, color)) => {
                         self.tm.draw_at(
                             [
                                 x as f64 * tile_w,
@@ -51,6 +51,7 @@ impl GameView {
                                 tile_h + 1.0,
                             ],
                             &tile_sprite,
+                            color,
                             c.transform,
                             g,
                         );
@@ -61,7 +62,7 @@ impl GameView {
         }
 
         // draw actors (this includes the player)
-        for (key, position) in controller.actor_sprites() {
+        for ((key, color), position) in controller.actor_sprites() {
             self.tm.draw_at(
                 [
                     position[0] as f64 * tile_w,
@@ -70,6 +71,7 @@ impl GameView {
                     tile_h,
                 ],
                 &key,
+                color,
                 c.transform,
                 g,
             );

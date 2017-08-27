@@ -9,7 +9,8 @@ use game::{Message, Movable, MovementDirection, Drawable};
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
 
-const SPRITE_KEY: &'static str = "65";
+const SPRITE_KEY: &'static str = "mutant";
+const SPRITE_COLOR: [f32; 4] = [0.937, 0.529, 0.0, 1.0];
 
 const PERSONAL_SPACE: f32 = 3.0;
 
@@ -53,8 +54,8 @@ impl Movable for Soldier {
 }
 
 impl Drawable for Soldier {
-    fn sprite_key(&self) -> String {
-        String::from(SPRITE_KEY)
+    fn sprite_components(&self) -> (String, [f32; 4]) {
+        (String::from(SPRITE_KEY), SPRITE_COLOR)
     }
 }
 
@@ -85,8 +86,8 @@ impl Actor for Soldier {
                                                          f32)
                         .sqrt();
                     let distance_from_player = (((self.position[0] - a.position[0]).pow(2) +
-                                                          (self.position[1] - a.position[1]).pow(2)) as
-                                                         f32)
+                                                     (self.position[1] - a.position[1]).pow(2)) as
+                                                    f32)
                         .sqrt();
                     if a.actor_type == ActorType::Player {
                         return false;

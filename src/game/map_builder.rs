@@ -41,21 +41,6 @@ impl MapBuilder {
 
         let (width, height) = (map.width() as f32, map.height() as f32);
 
-        let stone_noise = Fbm::<f32>::new().set_seed(self.seed + 1);
-        map.mut_parallel(move |t| {
-            let (x, y) = (t.position[0] as f32, t.position[1] as f32);
-            if stone_noise.get(
-                [
-                    (((width - 1.0) * offset_x) + x) * NOISE_SCALE,
-                    (((height - 1.0) * offset_y) + y) * NOISE_SCALE,
-                    1.0,
-                ],
-            ) > 0.1
-            {
-                t.tile_type = TileType::Floor(FloorType::Concrete);
-            }
-        });
-
         let grass_noise = Fbm::<f32>::new().set_seed(self.seed);
         map.mut_parallel(move |t| {
             let (x, y) = (t.position[0] as f32, t.position[1] as f32);
@@ -68,6 +53,36 @@ impl MapBuilder {
             ) > 0.1
             {
                 t.tile_type = TileType::Floor(FloorType::Grass);
+            }
+        });
+
+        let stone_noise = Fbm::<f32>::new().set_seed(self.seed + 1);
+        map.mut_parallel(move |t| {
+            let (x, y) = (t.position[0] as f32, t.position[1] as f32);
+            if stone_noise.get(
+                [
+                    (((width - 1.0) * offset_x) + x) * NOISE_SCALE,
+                    (((height - 1.0) * offset_y) + y) * NOISE_SCALE,
+                    1.0,
+                ],
+            ) > 0.1
+            {
+                t.tile_type = TileType::Floor(FloorType::Stone);
+            }
+        });
+
+        let water_noise = Fbm::<f32>::new().set_seed(self.seed + 2);
+        map.mut_parallel(move |t| {
+            let (x, y) = (t.position[0] as f32, t.position[1] as f32);
+            if water_noise.get(
+                [
+                    (((width - 1.0) * offset_x) + x) * NOISE_SCALE,
+                    (((height - 1.0) * offset_y) + y) * NOISE_SCALE,
+                    1.0,
+                ],
+            ) > 0.1
+            {
+                t.tile_type = TileType::Floor(FloorType::Water);
             }
         });
 

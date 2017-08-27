@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use uuid::Uuid;
+use rand;
 use piston::input::{Button, Key, GenericEvent};
 use game;
 use game::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
@@ -10,7 +11,8 @@ use game::{Message, Map, Movable, MovementResult, MovementDirection, Drawable};
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
 
-const SPRITE_KEY: &'static str = "21";
+const SPRITE_KEY: &'static str = "pc";
+const SPRITE_COLOR: [f32; 4] = [0.141, 0.424, 0.376, 1.0];
 
 /// Stores information and statistics pertaining to the
 /// player's avatar.
@@ -91,13 +93,9 @@ impl Player {
                 let new_map_offset = Player::get_new_map_offset_from_edge(map, edge_pos);
                 self.status = Some(ActorStatus::LoadMapAtRelativeOffset(new_map_offset));
             }
+            MovementResult::Fluid => {}
             _ => {}
         }
-        let new_position = self.position;
-        self.messages.push_back(Message {
-            contents: format!("Player moved to position {:?}.", new_position),
-            message_type: MessageType::Normal,
-        });
         self.perform_ticks(1);
     }
 
@@ -157,8 +155,8 @@ impl Movable for Player {
 }
 
 impl Drawable for Player {
-    fn sprite_key(&self) -> String {
-        String::from(SPRITE_KEY)
+    fn sprite_components(&self) -> (String, [f32; 4]) {
+        (String::from(SPRITE_KEY), SPRITE_COLOR)
     }
 }
 
