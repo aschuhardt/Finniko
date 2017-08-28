@@ -201,8 +201,37 @@ impl GameState {
     }
 
     fn add_player(mut self) -> GameState {
+        use rand;
+        use rand::distributions::{IndependentSample, Range};
         use self::actor::ActorType;
-        let player = actor::create(&ActorType::Player);
+        use self::tile::{FloorType, TileType};
+
+        let mut player = actor::create(&ActorType::Player);
+
+        let mut rng = rand::thread_rng();
+        let range_x = Range::<i32>::new(0, self.map.width() as i32);
+        let range_y = Range::<i32>::new(0, self.map.height() as i32);
+
+        loop {
+            let x = range_x.ind_sample(&mut rng);
+            let y = range_y.ind_sample(&mut rng);
+            player.set_x(x);
+            player.set_y(y);
+
+            if let Some(tile_xy) = self.map.get_at([x, y]) {
+                match tile_xy.tile_type {
+                    TileType::Wall(_, _) => {}
+                    TileType::Floor(ref floor_type) => {
+                        match *floor_type {
+                            FloorType::Mud | FloorType::Water => {}
+                            _ => break,
+                        }
+                    }
+                    _ => break,
+                };
+            }
+        }
+
         self.player_id = player.id();
         info!("Player ID: {}", self.player_id);
         self.actors.insert(self.player_id, player);

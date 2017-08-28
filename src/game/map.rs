@@ -8,6 +8,7 @@ use super::{MAP_WIDTH, MAP_HEIGHT};
 /// arrangement of tiles and entities.  This ultimately makes
 /// up the virtual space that the elements of the game interact
 /// with, and within which they can be said to exist.
+#[derive(Clone)]
 pub struct Map {
     tiles: Array2<Tile>,
 }
@@ -28,25 +29,26 @@ impl Map {
         }
     }
 
-    /// Sets the type of a tile at the specified position.
-    pub fn set_at(&mut self, position: [i32; 2], tile_type: TileType) {
-        let (x, y) = (position[0], position[1]);
-        if x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT {
-            self.tiles[[x as usize, y as usize]].tile_type = tile_type;
-        } else {
-            warn!(
-                "Tried to set a tile's type at a position not within the map: {:?}",
-                position
-            );
-        }
-    }
+    // /// Sets the type of a tile at the specified position.
+    // pub fn set_at(&mut self, position: [i32; 2], tile_type: TileType) {
+    //     let (x, y) = (position[0], position[1]);
+    //     if x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT {
+    //         self.tiles[[x as usize, y as usize]].tile_type = tile_type;
+    //     } else {
+    //         warn!(
+    //             "Tried to set a tile's type at a position not within the map: {:?}",
+    //             position
+    //         );
+    //     }
+    // }
 
     /// Mutates the map's tiles in parallel using the provided closure operation.
     pub fn mut_parallel<F>(&mut self, op: F)
     where
-        F: Fn(&mut Tile) + Sync + Send,
+        F: Fn(&Map, &mut Tile) + Sync + Send,
     {
-        self.tiles.par_iter_mut().for_each(|t| op(t));
+        let m = self.clone();
+        self.tiles.par_iter_mut().for_each(|t| op(&m, t));
     }
 
     /// Returns the width, in number of tiles, of the map.

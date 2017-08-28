@@ -8,7 +8,7 @@ use text_renderer::{FontSize, TextRenderer};
 
 const MESSAGE_LEFT_PAD: f64 = 10.0;
 const MESSAGE_VERTICAL_ADJUSTMENT: f64 = -6.0;
-const TEXT_WRAP_WIDTH: usize = 24;
+const TEXT_WRAP_WIDTH: usize = 32;
 const MESSAGE_DISPLAY_WIDTH: f64 = 250.0;
 
 /// Renders information about the game's current state to the screen.
@@ -128,7 +128,7 @@ impl GameView {
                         position,
                         String::from(line),
                         c.transform,
-                        FontSize::Size24,
+                        FontSize::Size18,
                         color,
                         g,
                     );

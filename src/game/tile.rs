@@ -20,6 +20,8 @@ pub enum WallType {
     Adobe,
 }
 
+pub const DEFAULT_WALL_TYPE: WallType = WallType::Stone;
+
 #[derive(Clone)]
 pub enum FloorType {
     Dirt,
@@ -56,14 +58,18 @@ impl Drawable for Tile {
     fn sprite_components(&self) -> SpriteInfo {
         let tt = &self.tile_type;
         match *tt {
-            TileType::Empty => SpriteInfo { key: "void", color: [0.0; 4]},
+            TileType::Empty => SpriteInfo {
+                key: "void",
+                color: [0.0; 4],
+            },
             TileType::Wall(ref orientation, ref style) => {
                 let key = match *orientation {
                     WallOrientation::Face => "wall_face",
                     WallOrientation::Top => "wall_top",
                 };
                 let color = match *style {
-                    WallType::Brick | WallType::Stone | WallType::Adobe => [1.0, 1.0, 1.0, 1.0],
+                    WallType::Stone => [0.439, 0.498, 0.475, 0.1],
+                    _ => [1.0, 1.0, 1.0, 1.0],
                 };
                 SpriteInfo {
                     key: key,
