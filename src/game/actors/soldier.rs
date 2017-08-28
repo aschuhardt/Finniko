@@ -4,13 +4,15 @@ use bresenham::Bresenham;
 use game::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
 use game;
 use game::message::MessageType;
-use game::{Message, Movable, MovementDirection, Drawable};
+use game::{Message, Movable, MovementDirection, Drawable, SpriteInfo};
 
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
 
-const SPRITE_KEY: &'static str = "mutant";
-const SPRITE_COLOR: [f32; 4] = [0.937, 0.529, 0.0, 1.0];
+const SPRITE_INFO: SpriteInfo = SpriteInfo {
+    key: "mutant",
+    color: [0.937, 0.529, 0.0, 1.0],
+};
 
 const PERSONAL_SPACE: f32 = 3.0;
 
@@ -54,8 +56,8 @@ impl Movable for Soldier {
 }
 
 impl Drawable for Soldier {
-    fn sprite_components(&self) -> (&str, [f32; 4]) {
-        (SPRITE_KEY, SPRITE_COLOR)
+    fn sprite_components(&self) -> SpriteInfo {
+        SPRITE_INFO
     }
 }
 

@@ -1,4 +1,4 @@
-use super::Drawable;
+use super::{Drawable, SpriteInfo};
 
 #[derive(Clone)]
 pub enum TileType {
@@ -53,10 +53,10 @@ impl Tile {
 }
 
 impl Drawable for Tile {
-    fn sprite_components(&self) -> (&str, [f32; 4]) {
+    fn sprite_components(&self) -> SpriteInfo {
         let tt = &self.tile_type;
         match *tt {
-            TileType::Empty => ("void", [0.0; 4]),
+            TileType::Empty => SpriteInfo { key: "void", color: [0.0; 4]},
             TileType::Wall(ref orientation, ref style) => {
                 let key = match *orientation {
                     WallOrientation::Face => "wall_face",
@@ -65,18 +65,45 @@ impl Drawable for Tile {
                 let color = match *style {
                     WallType::Brick | WallType::Stone | WallType::Adobe => [1.0, 1.0, 1.0, 1.0],
                 };
-                (key, color)
+                SpriteInfo {
+                    key: key,
+                    color: color,
+                }
             }
             TileType::Floor(ref style) => {
                 match *style {
-                    FloorType::Dirt => ("ground", [0.525, 0.408, 0.29, 1.0]),
-                    FloorType::Stone => ("brick", [0.267, 0.427, 0.416, 1.0]),
-                    FloorType::Grass => ("ground", [0.224, 0.408, 0.247, 1.0]),
-                    FloorType::Gravel => ("ground", [0.176, 0.153, 0.137, 1.0]),
-                    FloorType::Wood => ("wood", [0.675, 0.49, 0.333, 1.0]),
-                    FloorType::Overgrown => ("plant", [0.078, 0.314, 0.165, 1.0]),
-                    FloorType::Water => ("fluid", [0.067, 0.224, 0.588, 1.0]),
-                    FloorType::Mud => ("fluid", [0.216, 0.149, 0.11, 1.0]),
+                    FloorType::Dirt => SpriteInfo {
+                        key: "ground",
+                        color: [0.525, 0.408, 0.29, 1.0],
+                    },
+                    FloorType::Stone => SpriteInfo {
+                        key: "brick",
+                        color: [0.267, 0.427, 0.416, 1.0],
+                    },
+                    FloorType::Grass => SpriteInfo {
+                        key: "ground",
+                        color: [0.224, 0.408, 0.247, 1.0],
+                    },
+                    FloorType::Gravel => SpriteInfo {
+                        key: "ground",
+                        color: [0.176, 0.153, 0.137, 1.0],
+                    },
+                    FloorType::Wood => SpriteInfo {
+                        key: "wood",
+                        color: [0.675, 0.49, 0.333, 1.0],
+                    },
+                    FloorType::Overgrown => SpriteInfo {
+                        key: "plant",
+                        color: [0.078, 0.314, 0.165, 1.0],
+                    },
+                    FloorType::Water => SpriteInfo {
+                        key: "fluid",
+                        color: [0.067, 0.224, 0.588, 1.0],
+                    },
+                    FloorType::Mud => SpriteInfo {
+                        key: "fluid",
+                        color: [0.216, 0.149, 0.11, 1.0],
+                    },
                 }
             }
         }

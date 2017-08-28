@@ -13,6 +13,7 @@ mod tile;
 mod map_builder;
 mod texture_mapper;
 mod message;
+mod sprite_info;
 
 use std::collections::{HashMap, VecDeque};
 use mopa;
@@ -27,6 +28,7 @@ pub use self::tile::Tile;
 pub use self::map_builder::MapBuilder;
 pub use self::texture_mapper::TextureMapper;
 pub use self::message::Message;
+pub use self::sprite_info::SpriteInfo;
 
 /// The width of any given map in number of tiles.
 pub const MAP_WIDTH: i32 = 56;
@@ -94,7 +96,7 @@ mopafy!(Movable);
 pub trait Drawable: mopa::Any {
     /// Returns a `String` that corresponds which sprite should be
     /// drawn for the implementation.
-    fn sprite_components(&self) -> (&str, [f32; 4]);
+    fn sprite_components(&self) -> SpriteInfo;
 
     /// If overridden, indicates whether the implementor's sprite should
     /// be drawn.

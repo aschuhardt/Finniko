@@ -4,13 +4,15 @@ use piston::input::{Button, Key, GenericEvent};
 use game;
 use game::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
 use game::message::MessageType;
-use game::{Message, Map, Movable, MovementResult, MovementDirection, Drawable};
+use game::{Message, Map, Movable, MovementResult, MovementDirection, Drawable, SpriteInfo};
 
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
 
-const SPRITE_KEY: &'static str = "pc";
-const SPRITE_COLOR: [f32; 4] = [0.141, 0.424, 0.376, 1.0];
+const SPRITE_INFO: SpriteInfo = SpriteInfo {
+    key: "pc",
+    color: [0.141, 0.424, 0.376, 1.0],
+};
 
 /// Stores information and statistics pertaining to the
 /// player's avatar.
@@ -152,8 +154,8 @@ impl Movable for Player {
 }
 
 impl Drawable for Player {
-    fn sprite_components(&self) -> (&str, [f32; 4]) {
-        (SPRITE_KEY, SPRITE_COLOR)
+    fn sprite_components(&self) -> SpriteInfo {
+        SPRITE_INFO
     }
 }
 

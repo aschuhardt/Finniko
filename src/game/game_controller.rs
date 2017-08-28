@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use piston::input::GenericEvent;
 use status::ControllerStatus;
-use super::{Drawable, GameState, MapBuilder};
+use super::{Drawable, GameState, MapBuilder, SpriteInfo};
 use super::actor;
 use super::actor::{Actor, ActorStatus, ActorInfo};
 use super::actors::player::Player;
@@ -41,7 +41,7 @@ impl GameController {
     }
 
     /// Returns the sprite key for the tile at the specified position
-    pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<(&str, [f32; 4]), String> {
+    pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<SpriteInfo, String> {
         if let Some(tile) = self.state.map.get_at(position) {
             Ok(tile.sprite_components())
         } else {
@@ -104,8 +104,8 @@ impl GameController {
             .collect()
     }
 
-    pub fn actor_sprites(&self) -> Vec<((&str, [f32; 4]), [i32; 2])> {
-        let mut sprite_positions = Vec::<((&str, [f32; 4]), [i32; 2])>::new();
+    pub fn actor_sprites(&self) -> Vec<(SpriteInfo, [i32; 2])> {
+        let mut sprite_positions = Vec::<(SpriteInfo, [i32; 2])>::new();
         for (_, actor) in self.state.actors.iter().filter(|&(_, v)| v.visible()) {
             sprite_positions.push((actor.sprite_components(), actor.current_position()));
         }
