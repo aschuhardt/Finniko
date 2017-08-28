@@ -1,11 +1,9 @@
 use std::collections::VecDeque;
 use uuid::Uuid;
-use rand;
 use piston::input::{Button, Key, GenericEvent};
 use game;
 use game::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
 use game::message::MessageType;
-use game::tile::TileType;
 use game::{Message, Map, Movable, MovementResult, MovementDirection, Drawable};
 
 /// The default number of spaces that the player moves at once.
@@ -37,7 +35,7 @@ impl Player {
     }
 
     pub fn ticks(&mut self) -> Option<u32> {
-        let ticks = self.ticks.clone();
+        let ticks = self.ticks;
         self.ticks = None;
         ticks
     }
@@ -89,11 +87,10 @@ impl Player {
         match game::try_move(self, map, &dir, MOVEMENT_AMOUNT) {
             MovementResult::Clear => self.move_toward(&dir),
             MovementResult::MapEdge(edge_pos) => {
-                self.move_over_edge(map, edge_pos.clone());
+                self.move_over_edge(map, edge_pos);
                 let new_map_offset = Player::get_new_map_offset_from_edge(map, edge_pos);
                 self.status = Some(ActorStatus::LoadMapAtRelativeOffset(new_map_offset));
             }
-            MovementResult::Fluid => {}
             _ => {}
         }
         self.perform_ticks(1);
@@ -155,8 +152,8 @@ impl Movable for Player {
 }
 
 impl Drawable for Player {
-    fn sprite_components(&self) -> (String, [f32; 4]) {
-        (String::from(SPRITE_KEY), SPRITE_COLOR)
+    fn sprite_components(&self) -> (&str, [f32; 4]) {
+        (SPRITE_KEY, SPRITE_COLOR)
     }
 }
 
@@ -172,11 +169,11 @@ impl Actor for Player {
         });
     }
 
-    fn on_update(&mut self, actors: &Vec<ActorInfo>) {}
+    fn on_update(&mut self, actors: &[ActorInfo]) {}
 
-    fn on_interact(&mut self, actors: &Vec<ActorInfo>) {}
+    fn on_interact(&mut self, actors: &[ActorInfo]) {}
 
-    fn on_remove(&mut self, actors: &Vec<ActorInfo>) {}
+    fn on_remove(&mut self, actors: &[ActorInfo]) {}
 
     fn actor_type(&self) -> ActorType {
         ActorType::Player

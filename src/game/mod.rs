@@ -94,7 +94,7 @@ mopafy!(Movable);
 pub trait Drawable: mopa::Any {
     /// Returns a `String` that corresponds which sprite should be
     /// drawn for the implementation.
-    fn sprite_components(&self) -> (String, [f32; 4]);
+    fn sprite_components(&self) -> (&str, [f32; 4]);
 
     /// If overridden, indicates whether the implementor's sprite should
     /// be drawn.
@@ -167,15 +167,14 @@ pub fn try_move<M: Movable>(
     spaces: i32,
 ) -> MovementResult {
     let check_position = map_direction_to_position(subject.current_position(), dir, spaces);
-    if let Some(ref tile) = map.get_at(check_position) {
+    if let Some(tile) = map.get_at(check_position) {
         use self::tile::{FloorType, TileType};
         match tile.tile_type {
             TileType::Wall(_, _) |
             TileType::Empty => MovementResult::Wall,
             TileType::Floor(ref floor_type) => {
-                match floor_type {
-                    &FloorType::Water |
-                    &FloorType::Mud => MovementResult::Fluid,
+                match *floor_type {
+                    FloorType::Water | FloorType::Mud => MovementResult::Fluid,
                     _ => MovementResult::Clear,
                 }
             }
@@ -201,7 +200,7 @@ impl GameState {
 
     fn add_player(mut self) -> GameState {
         use self::actor::ActorType;
-        let player = actor::create(ActorType::Player);
+        let player = actor::create(&ActorType::Player);
         self.player_id = player.id();
         info!("Player ID: {}", self.player_id);
         self.actors.insert(self.player_id, player);

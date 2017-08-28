@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 use piston::input::GenericEvent;
 use status::ControllerStatus;
-use rayon::prelude::*;
 use super::{Drawable, GameState, MapBuilder};
 use super::actor;
 use super::actor::{Actor, ActorStatus, ActorInfo};
@@ -42,7 +41,7 @@ impl GameController {
     }
 
     /// Returns the sprite key for the tile at the specified position
-    pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<(String, [f32; 4]), String> {
+    pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<(&str, [f32; 4]), String> {
         if let Some(tile) = self.state.map.get_at(position) {
             Ok(tile.sprite_components())
         } else {
@@ -105,8 +104,8 @@ impl GameController {
             .collect()
     }
 
-    pub fn actor_sprites(&self) -> Vec<((String, [f32; 4]), [i32; 2])> {
-        let mut sprite_positions = Vec::<((String, [f32; 4]), [i32; 2])>::new();
+    pub fn actor_sprites(&self) -> Vec<((&str, [f32; 4]), [i32; 2])> {
+        let mut sprite_positions = Vec::<((&str, [f32; 4]), [i32; 2])>::new();
         for (_, actor) in self.state.actors.iter().filter(|&(_, v)| v.visible()) {
             sprite_positions.push((actor.sprite_components(), actor.current_position()));
         }
@@ -141,11 +140,11 @@ impl GameController {
         // build cache of actor info
         let mut actor_info = Vec::<ActorInfo>::new();
         for actor in self.state.actors.values() {
-            actor_info.push(ActorInfo::new(actor));
+            actor_info.push(ActorInfo::new(actor.as_ref()));
         }
 
         // update actors
-        for (_, actor) in self.state.actors.iter_mut() {
+        for actor in &mut self.state.actors.values_mut() {
             // update
             actor.on_update(&actor_info);
 
@@ -167,7 +166,7 @@ impl GameController {
                         self.state.show_messages = !self.state.show_messages;
                     }
                     ActorStatus::SpawnActorAt(actor_type, position) => {
-                        let mut spawned = actor::create(actor_type);
+                        let mut spawned = actor::create(&actor_type);
                         spawned.set_x(position[0]);
                         spawned.set_y(position[1]);
                         self.actions.push_back(Action::Spawn(spawned));

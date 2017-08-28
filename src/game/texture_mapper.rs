@@ -40,7 +40,7 @@ impl TextureMapper {
     pub fn draw_at<R: Into<Rectangle>>(
         &self,
         destination: R,
-        key: &String,
+        key: &str,
         color: [f32; 4],
         transform: Matrix2d,
         g: &mut GlGraphics,
@@ -94,7 +94,7 @@ impl TextureMapper {
 
     fn save_template_coords(path: PathBuf) {
         let file = File::create(path).expect("Unable to create template texture coordinates file.");
-        let _ = serde_json::to_writer_pretty(
+        serde_json::to_writer_pretty(
             BufWriter::new(file),
             &CoordinateMap {
                 map: [(String::from("key_text"), [0.0, 0.0, 16.0, 16.0])]

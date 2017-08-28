@@ -1,13 +1,8 @@
-use opengl_graphics::{GlGraphics, TextureSettings};
-use opengl_graphics::glyph_cache::GlyphCache;
+use opengl_graphics::GlGraphics;
 use graphics::{Transformed, DrawState, Context};
-use graphics::text::Text;
 use text_renderer::{FontSize, TextRenderer};
 use super::DebugInfoController;
 
-const FONT_PATH: &'static str = "assets/OpenSans-Light.ttf";
-const FONT_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-const FONT_SIZE: u16 = 16;
 const TEXT_VERTICAL_SPACING: f64 = 12.0;
 const TEXT_HORIZONTAL_POSITION: f64 = 2.0;
 
@@ -74,13 +69,6 @@ impl DebugInfoView {
 
     /// Helper function for rendering text to an area on the screen.
     fn write_at(&mut self, text: String, pos: [f64; 2], c: &Context, g: &mut GlGraphics) {
-        // Text::new_color(FONT_COLOR, FONT_SIZE).draw(
-        //     text.as_str(),
-        //     &mut self.glyphs,
-        //     &DrawState::default(),
-        //     c.transform.trans(pos[0], pos[1]),
-        //     g,
-        // );
         self.text_renderer.draw_at(
             pos,
             text,

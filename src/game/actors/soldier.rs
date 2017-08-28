@@ -54,8 +54,8 @@ impl Movable for Soldier {
 }
 
 impl Drawable for Soldier {
-    fn sprite_components(&self) -> (String, [f32; 4]) {
-        (String::from(SPRITE_KEY), SPRITE_COLOR)
+    fn sprite_components(&self) -> (&str, [f32; 4]) {
+        (SPRITE_KEY, SPRITE_COLOR)
     }
 }
 
@@ -71,15 +71,11 @@ impl Actor for Soldier {
         });
     }
 
-    fn on_update(&mut self, actors: &Vec<ActorInfo>) {
-        if let Some(player) = actors
-            .iter()
-            .filter(|a| a.actor_type == ActorType::Player)
-            .next()
-        {
+    fn on_update(&mut self, actors: &[ActorInfo]) {
+        if let Some(player) = actors.iter().find(|a| a.actor_type == ActorType::Player) {
             let (x, y) = (self.position[0], self.position[1]);
             let (player_x, player_y) = (player.position[0], player.position[1]);
-            if let Some(next_pos) = Bresenham::new((x, y), (player_x, player_y)).skip(1).next() {
+            if let Some(next_pos) = Bresenham::new((x, y), (player_x, player_y)).nth(1) {
                 if !actors.iter().any(|a| {
                     let distance_from_destination = (((next_pos.0 - a.position[0]).pow(2) +
                                                           (next_pos.1 - a.position[1]).pow(2)) as
@@ -104,9 +100,9 @@ impl Actor for Soldier {
         }
     }
 
-    fn on_interact(&mut self, actors: &Vec<ActorInfo>) {}
+    fn on_interact(&mut self, actors: &[ActorInfo]) {}
 
-    fn on_remove(&mut self, actors: &Vec<ActorInfo>) {}
+    fn on_remove(&mut self, actors: &[ActorInfo]) {}
 
     fn actor_type(&self) -> ActorType {
         ActorType::Soldier

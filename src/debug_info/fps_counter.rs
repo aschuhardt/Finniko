@@ -31,7 +31,7 @@ impl FpsCounter {
 
     /// Returns the current framerate
     pub fn framerate(&self) -> u32 {
-        if self.previous_times.len() > 0 {
+        if !self.previous_times.is_empty() {
             let average = self.previous_times.iter().sum::<u32>() / BUFFER_SIZE as u32;
             1_000_000_000 / average
         } else {

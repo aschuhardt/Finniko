@@ -43,7 +43,7 @@ pub struct ActorInfo {
 impl ActorInfo {
     /// Creates and returns a new instance of the ActorInfo struct from the
     /// information in the provided Actor.
-    pub fn new(actor: &Box<Actor>) -> ActorInfo {
+    pub fn new(actor: &Actor) -> ActorInfo {
         ActorInfo {
             id: actor.id(),
             actor_type: actor.actor_type(),
@@ -64,13 +64,13 @@ pub trait Actor: mopa::Any + Drawable + Movable {
     fn on_create(&mut self);
 
     /// Called on each update tick
-    fn on_update(&mut self, actors: &Vec<ActorInfo>);
+    fn on_update(&mut self, actors: &[ActorInfo]);
 
     /// Called when interacted with by another Actor
-    fn on_interact(&mut self, actors: &Vec<ActorInfo>);
+    fn on_interact(&mut self, actors: &[ActorInfo]);
 
     /// Called before the Actor is removed from game state
-    fn on_remove(&mut self, actors: &Vec<ActorInfo>);
+    fn on_remove(&mut self, actors: &[ActorInfo]);
 
     /// Returns a marker indicating what type of actor this is
     fn actor_type(&self) -> ActorType;
@@ -90,8 +90,8 @@ pub trait Actor: mopa::Any + Drawable + Movable {
 }
 mopafy!(Actor);
 
-pub fn create(actor_type: ActorType) -> Box<Actor> {
-    let mut actor: Box<Actor> = match actor_type {
+pub fn create(actor_type: &ActorType) -> Box<Actor> {
+    let mut actor: Box<Actor> = match *actor_type {
         ActorType::Player => Box::new(player::Player::new(Uuid::new_v4())),
         ActorType::Soldier => Box::new(soldier::Soldier::new()),
     };

@@ -75,11 +75,8 @@ impl DebugInfoController {
         } else if let Some(amt) = event.mouse_scroll_args() {
             self.state.mouse_scroll = amt;
         } else if let Some(btn) = event.press_args() {
-            match btn {
-                Button::Keyboard(Key::F3) => {
-                    self.state.should_draw = !self.state.should_draw;
-                }
-                _ => {}
+            if let Button::Keyboard(Key::F3) = btn {
+                self.state.should_draw = !self.state.should_draw;
             }
         }
     }
