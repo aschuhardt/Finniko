@@ -146,7 +146,7 @@ impl GameController {
         self.player_position = player_position;
     }
 
-    fn get_downcasted_actor<A: Actor + Movable>(&mut self, id: &Uuid) -> Result<&mut A, String> {
+    fn get_downcasted_actor<A: Actor>(&mut self, id: &Uuid) -> Result<&mut A, String> {
         if let Some(actor) = self.state.actors.get_mut(id) {
             if let Some(concrete_actor) = actor.downcast_mut::<A>() {
                 Ok(concrete_actor)
@@ -212,7 +212,7 @@ impl GameController {
     }
 
     fn within_player_view(&self, position: [i32; 2]) -> bool {
-        self.ray_visible(position, self.player_position)
+        self.ray_visible(self.player_position, position)
     }
 
     fn ray_visible(&self, origin: [i32; 2], target: [i32; 2]) -> bool {
