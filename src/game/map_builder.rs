@@ -1,6 +1,6 @@
 use rand;
 use std::time::SystemTime;
-use noise::{Seedable, Fbm, RangeFunction, Worley, NoiseModule};
+use noise::{Seedable, RangeFunction, Worley, NoiseModule};
 use super::map::Map;
 use super::tile::{TileType, FloorType, WallOrientation, WallType, DEFAULT_WALL_TYPE};
 

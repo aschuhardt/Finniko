@@ -88,7 +88,7 @@ impl GameView {
             // check which side of the screen the player is on,
             // and adjust the position of message box accordingly
             let mut left_adjust = 0.0;
-            let player_x = controller.player_position()[0] as f64;
+            let player_x = controller.player_position[0] as f64;
             if player_x * tile_w < screen_w / 2.0 {
                 left_adjust = screen_w - MESSAGE_DISPLAY_WIDTH;
             }

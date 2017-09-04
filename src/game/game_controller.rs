@@ -1,14 +1,19 @@
 use std::collections::VecDeque;
+use uuid::Uuid;
 use piston::input::GenericEvent;
+use bresenham::Bresenham;
 use status::ControllerStatus;
-use super::{Drawable, GameState, MapBuilder, SpriteInfo};
+use super::{Drawable, Movable, Positioned, GameState, MapBuilder, SpriteInfo};
 use super::actor;
 use super::actor::{Actor, ActorStatus, ActorInfo};
 use super::actors::player::Player;
 use super::message::Message;
 
+const SPRITE_KEY_VOID: &'static str = "void";
+
 /// Stores and updates the game's current state.
 pub struct GameController {
+    pub player_position: [i32; 2],
     state: GameState,
     status: Option<ControllerStatus>,
     map_builder: MapBuilder,
@@ -32,6 +37,7 @@ impl GameController {
     /// its `state` field containing the provided GameState instance.
     pub fn new_with(state: GameState, map_builder: MapBuilder) -> GameController {
         GameController {
+            player_position: [-1, -1],
             state: state,
             status: None,
             map_builder: map_builder,
@@ -43,7 +49,10 @@ impl GameController {
     /// Returns the sprite key for the tile at the specified position
     pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<SpriteInfo, String> {
         if let Some(tile) = self.state.map.get_at(position) {
-            Ok(tile.sprite_components())
+            Ok(self.get_sprite_at_distance(
+                tile.current_position(),
+                tile.sprite_components(),
+            ))
         } else {
             Err(format!(
                 "Unable to gather sprite key for tile at {:?}",
@@ -75,16 +84,6 @@ impl GameController {
         }
     }
 
-    /// Returns the player's current position.
-    pub fn player_position(&self) -> [i32; 2] {
-        if let Some(player) = self.state.actors.get(&self.state.player_id) {
-            player.current_position()
-        } else {
-            error!("Unable to retrieve player position!");
-            [0; 2]
-        }
-    }
-
     /// Returns a reference to the current status of the controller, indicating
     /// whether it needs to affect the program flow in some way.
     pub fn get_status(&mut self) -> Option<ControllerStatus> {
@@ -106,8 +105,10 @@ impl GameController {
 
     pub fn actor_sprites(&self) -> Vec<(SpriteInfo, [i32; 2])> {
         let mut sprite_positions = Vec::<(SpriteInfo, [i32; 2])>::new();
-        for (_, actor) in self.state.actors.iter().filter(|&(_, v)| v.visible()) {
-            sprite_positions.push((actor.sprite_components(), actor.current_position()));
+        for actor in self.state.actors.values() {
+            let sprite =
+                self.get_sprite_at_distance(actor.current_position(), actor.sprite_components());
+            sprite_positions.push((sprite, actor.current_position()));
         }
         sprite_positions
     }
@@ -123,16 +124,37 @@ impl GameController {
     }
 
     fn update_player<E: GenericEvent>(&mut self, event: &E) {
-        // update player
-        if let Some(player_actor) = self.state.actors.get_mut(&self.state.player_id) {
-            if let Some(ref mut player) = player_actor.downcast_mut::<Player>() {
-                player.event_update(event, &self.state.map);
+        let id = self.state.player_id.clone();
+        let ref map = self.state.map.clone();
+        let mut ticks_to_add = 0;
+        let mut player_position = [-1; 2];
+
+        match self.get_downcasted_actor::<Player>(&id) {
+            Ok(player) => {
+                player.event_update(event, map);
+                player_position = player.current_position();
                 if let Some(count) = player.ticks() {
-                    self.ticks_to_perform = count;
+                    ticks_to_add = count;
                 }
-            } else {
-                error!("Player is unable to process events!")
             }
+            Err(why) => {
+                error!("{}", why);
+            }
+        };
+
+        self.ticks_to_perform += ticks_to_add;
+        self.player_position = player_position;
+    }
+
+    fn get_downcasted_actor<A: Actor + Movable>(&mut self, id: &Uuid) -> Result<&mut A, String> {
+        if let Some(actor) = self.state.actors.get_mut(id) {
+            if let Some(concrete_actor) = actor.downcast_mut::<A>() {
+                Ok(concrete_actor)
+            } else {
+                Err(format!("Could not cast actor with ID {} from ", id))
+            }
+        } else {
+            Err(format!("Could not find actor with ID {}", id))
         }
     }
 
@@ -177,5 +199,39 @@ impl GameController {
                 }
             }
         }
+    }
+
+    fn get_sprite_at_distance(&self, position: [i32; 2], sprite: SpriteInfo) -> SpriteInfo {
+        if !self.within_player_view(position) {
+            return SpriteInfo {
+                key: SPRITE_KEY_VOID,
+                color: [0.0; 4],
+            };
+        }
+        sprite
+    }
+
+    fn within_player_view(&self, position: [i32; 2]) -> bool {
+        self.ray_visible(position, self.player_position)
+    }
+
+    fn ray_visible(&self, origin: [i32; 2], target: [i32; 2]) -> bool {
+        use super::tile::TileType;
+        let origin_point = (origin[0], origin[1]);
+        let target_point = (target[0], target[1]);
+
+        let mut ray = Bresenham::new(origin_point, target_point);
+
+        while let Some(coords) = ray.next() {
+            if let Some(ray_node) = self.state.map.get_at([coords.0, coords.1]) {
+                match ray_node.tile_type {
+                    TileType::Wall(_, _) => {
+                        return false;
+                    }
+                    _ => {}
+                }
+            }
+        }
+        true
     }
 }

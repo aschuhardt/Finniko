@@ -20,7 +20,6 @@ extern crate texture;
 extern crate rand;
 extern crate ndarray_parallel;
 extern crate noise;
-extern crate rayon;
 extern crate bmfont;
 #[macro_use]
 extern crate lazy_static;
@@ -44,6 +43,10 @@ use text_renderer::TextRenderer;
 
 const WINDOW_WIDTH: u32 = 1386;
 const WINDOW_HEIGHT: u32 = 792;
+const MAX_FPS: u64 = 65;
+const VSYNC: bool = true;
+const LAZY: bool = false;
+const EXIT_ON_ESC: bool = true;
 
 lazy_static! {
     static ref TEXT_RENDERER: TextRenderer = TextRenderer::new();
@@ -69,15 +72,20 @@ fn main() {
 
     // initialize window settings, events, and graphics
     let opengl = OpenGL::V3_2;
+
     let settings = WindowSettings::new("finniko", [WINDOW_WIDTH, WINDOW_HEIGHT])
-        .vsync(false)
+        .vsync(VSYNC)
         .opengl(opengl)
-        .exit_on_esc(true);
+        .exit_on_esc(EXIT_ON_ESC);
+
     let mut window: GlutinWindow = settings.build().expect("Could not create window");
-    let mut event_settings = EventSettings::new();
-    event_settings.set_max_fps(65);
+
+    let event_settings = EventSettings::new().max_fps(MAX_FPS).lazy(LAZY);
+
     let mut events = Events::new(event_settings);
+
     let mut gl = GlGraphics::new(opengl);
+
     info!(
         "Graphical systems initialized...  Using Opengl version {:?}",
         opengl

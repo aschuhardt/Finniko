@@ -1,19 +1,19 @@
-use super::{Drawable, SpriteInfo};
+use super::{Drawable, Positioned, SpriteInfo};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum TileType {
     Empty,
     Wall(WallOrientation, WallType),
     Floor(FloorType),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum WallOrientation {
     Face,
     Top,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum WallType {
     Brick,
     Stone,
@@ -22,7 +22,7 @@ pub enum WallType {
 
 pub const DEFAULT_WALL_TYPE: WallType = WallType::Stone;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum FloorType {
     Dirt,
     Stone,
@@ -35,7 +35,7 @@ pub enum FloorType {
 }
 
 /// Represents a unit of space within the game's map.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Tile {
     /// The type of tile that this instance represents.
     pub tile_type: TileType,
@@ -51,6 +51,12 @@ impl Tile {
             tile_type: TileType::Floor(FloorType::Dirt),
             position: [0, 0],
         }
+    }
+}
+
+impl Positioned for Tile {
+    fn current_position(&self) -> [i32; 2] {
+        self.position
     }
 }
 

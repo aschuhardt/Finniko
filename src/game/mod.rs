@@ -73,14 +73,11 @@ pub enum MovementResult {
 }
 
 /// Implemented by structs capable of being moved in a specified direction.
-pub trait Movable: mopa::Any {
+pub trait Movable: Positioned + mopa::Any {
     /// Moves the implementor in the specified direction.
     /// The number of spaces moved is dependent on the properties
     /// of the implementor.
     fn move_toward(&mut self, dir: &MovementDirection);
-
-    /// Returns the current position of the implementor.
-    fn current_position(&self) -> [i32; 2];
 
     /// Sets the X coordinate of the implementor.
     fn set_x(&mut self, x: i32);
@@ -90,6 +87,12 @@ pub trait Movable: mopa::Any {
 }
 mopafy!(Movable);
 
+/// Implemented by structs representing objects that can have a position in the on-screen map grid.
+pub trait Positioned: mopa::Any {
+    /// Returns the current position of the implementor.
+    fn current_position(&self) -> [i32; 2];
+}
+mopafy!(Positioned);
 
 /// Implemented by structs representing objects that can be drawn.
 /// Anything that can have an in-game sprite needs to implement this.

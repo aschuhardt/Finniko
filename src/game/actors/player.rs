@@ -4,7 +4,8 @@ use piston::input::{Button, Key, GenericEvent};
 use game;
 use game::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
 use game::message::MessageType;
-use game::{Message, Map, Movable, MovementResult, MovementDirection, Drawable, SpriteInfo};
+use game::{Message, Map, Movable, MovementResult, MovementDirection, Drawable, Positioned,
+           SpriteInfo};
 
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
@@ -140,16 +141,18 @@ impl Movable for Player {
         self.position = game::map_direction_to_position(self.position, dir, MOVEMENT_AMOUNT);
     }
 
-    fn current_position(&self) -> [i32; 2] {
-        self.position
-    }
-
     fn set_x(&mut self, x: i32) {
         self.position = [x, self.position[1]];
     }
 
     fn set_y(&mut self, y: i32) {
         self.position = [self.position[0], y];
+    }
+}
+
+impl Positioned for Player {
+    fn current_position(&self) -> [i32; 2] {
+        self.position
     }
 }
 
@@ -160,7 +163,7 @@ impl Drawable for Player {
 }
 
 impl Actor for Player {
-    fn init(&mut self, position: [i32; 2], _: BehaviorStyle) -> Result<Uuid, String> {
+    fn init(&mut self, _: [i32; 2], _: BehaviorStyle) -> Result<Uuid, String> {
         Ok(self.id)
     }
 
@@ -171,11 +174,11 @@ impl Actor for Player {
         });
     }
 
-    fn on_update(&mut self, actors: &[ActorInfo]) {}
+    fn on_update(&mut self, _: &[ActorInfo]) {}
 
-    fn on_interact(&mut self, actors: &[ActorInfo]) {}
+    fn on_interact(&mut self, _: &[ActorInfo]) {}
 
-    fn on_remove(&mut self, actors: &[ActorInfo]) {}
+    fn on_remove(&mut self, _: &[ActorInfo]) {}
 
     fn actor_type(&self) -> ActorType {
         ActorType::Player
