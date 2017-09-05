@@ -4,7 +4,7 @@ use bresenham::Bresenham;
 use game::actor::{Actor, ActorStatus, ActorType, ActorInfo, BehaviorStyle};
 use game;
 use game::message::MessageType;
-use game::{Message, Movable, MovementDirection, Drawable, Positioned, SpriteInfo};
+use game::{Message, Movable, Map, MovementDirection, Drawable, Positioned, SpriteInfo};
 
 /// The default number of spaces that the player moves at once.
 pub const MOVEMENT_AMOUNT: i32 = 1;
@@ -64,10 +64,6 @@ impl Drawable for Soldier {
 }
 
 impl Actor for Soldier {
-    fn init(&mut self, _: [i32; 2], _: BehaviorStyle) -> Result<Uuid, String> {
-        Ok(self.id)
-    }
-
     fn on_create(&mut self) {
         self.messages.push_back(Message {
             contents: format!("Soldier was created!  ID: {}", self.id),
@@ -75,7 +71,7 @@ impl Actor for Soldier {
         });
     }
 
-    fn on_update(&mut self, actors: &[ActorInfo]) {
+    fn on_update(&mut self, _: &Map, actors: &[ActorInfo]) {
         if let Some(player) = actors.iter().find(|a| a.actor_type == ActorType::Player) {
             let self_pos = (self.position[0], self.position[1]);
             let player_pos = (player.position[0], player.position[1]);

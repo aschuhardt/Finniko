@@ -121,7 +121,7 @@ pub struct GameState {
     pub actors: HashMap<Uuid, Box<Actor>>,
 
     /// The Entities (interactive objects, terrain, etc.) currently in the map.
-    pub entities: HashMap<Uuid, Entity>,
+    pub entities: HashMap<Uuid, Box<Entity>>,
 
     /// The items currently present in the map.
     pub items: HashMap<Uuid, Item>,
@@ -196,7 +196,7 @@ impl GameState {
             player_id: Uuid::new_v4(),
             map: map_builder.create(),
             actors: HashMap::<Uuid, Box<Actor>>::new(),
-            entities: HashMap::<Uuid, Entity>::new(),
+            entities: HashMap::<Uuid, Box<Entity>>::new(),
             items: HashMap::<Uuid, Item>::new(),
             messages: VecDeque::<Message>::new(),
             show_messages: true,

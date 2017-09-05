@@ -163,10 +163,6 @@ impl Drawable for Player {
 }
 
 impl Actor for Player {
-    fn init(&mut self, _: [i32; 2], _: BehaviorStyle) -> Result<Uuid, String> {
-        Ok(self.id)
-    }
-
     fn on_create(&mut self) {
         self.messages.push_back(Message {
             contents: String::from("Welcome!"),
@@ -174,7 +170,7 @@ impl Actor for Player {
         });
     }
 
-    fn on_update(&mut self, _: &[ActorInfo]) {}
+    fn on_update(&mut self, _: &Map, _: &[ActorInfo]) {}
 
     fn on_interact(&mut self, _: &[ActorInfo]) {}
 

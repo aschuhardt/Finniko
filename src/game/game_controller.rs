@@ -3,13 +3,15 @@ use uuid::Uuid;
 use piston::input::GenericEvent;
 use bresenham::Bresenham;
 use status::ControllerStatus;
-use super::{Drawable, Movable, Positioned, GameState, MapBuilder, SpriteInfo};
+use super::{Drawable, Positioned, Map, GameState, MapBuilder, SpriteInfo};
 use super::actor;
 use super::actor::{Actor, ActorStatus, ActorInfo};
 use super::actors::player::Player;
 use super::message::Message;
 
 const SPRITE_KEY_VOID: &'static str = "void";
+const MAX_VISIBLE_DISTANCE: u32 = 8;
+const VISIBILITY_FALLOFF: u32 = 5;
 
 /// Stores and updates the game's current state.
 pub struct GameController {
@@ -23,6 +25,12 @@ pub struct GameController {
 
 enum Action {
     Spawn(Box<Actor>),
+}
+
+enum Visibility {
+    Full,
+    Half,
+    Invisible,
 }
 
 impl GameController {
@@ -47,7 +55,7 @@ impl GameController {
     }
 
     /// Returns the sprite key for the tile at the specified position
-    pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<SpriteInfo, String> {
+    pub fn tile_sprite_at(&self, position: [i32; 2]) -> Result<Vec<SpriteInfo>, String> {
         if let Some(tile) = self.state.map.get_at(position) {
             Ok(self.get_sprite_at_distance(
                 tile.current_position(),
@@ -106,9 +114,11 @@ impl GameController {
     pub fn actor_sprites(&self) -> Vec<(SpriteInfo, [i32; 2])> {
         let mut sprite_positions = Vec::<(SpriteInfo, [i32; 2])>::new();
         for actor in self.state.actors.values() {
-            let sprite =
+            let sprites =
                 self.get_sprite_at_distance(actor.current_position(), actor.sprite_components());
-            sprite_positions.push((sprite, actor.current_position()));
+            for sprite in sprites {
+                sprite_positions.push((sprite, actor.current_position()));
+            }
         }
         sprite_positions
     }
@@ -168,7 +178,7 @@ impl GameController {
         // update actors
         for actor in &mut self.state.actors.values_mut() {
             // update
-            actor.on_update(&actor_info);
+            actor.on_update(&self.state.map, &actor_info);
 
             // retrieve messages
             if let Some(messages) = actor.messages() {
@@ -201,37 +211,61 @@ impl GameController {
         }
     }
 
-    fn get_sprite_at_distance(&self, position: [i32; 2], sprite: SpriteInfo) -> SpriteInfo {
-        if !self.within_player_view(position) {
-            return SpriteInfo {
-                key: SPRITE_KEY_VOID,
-                color: [0.0; 4],
-            };
+    fn get_sprite_at_distance(&self, position: [i32; 2], sprite: SpriteInfo) -> Vec<SpriteInfo> {
+        match self.within_player_view(position) {
+            Visibility::Full => vec!(sprite),
+            Visibility::Half => vec!(
+                sprite,
+                SpriteInfo { key: SPRITE_KEY_VOID, color: [0.0, 0.0, 0.0, 0.5] },            
+            ),
+            Visibility::Invisible => vec!(
+                SpriteInfo { key: SPRITE_KEY_VOID, color: [0.0; 4] },
+            ),
         }
-        sprite
     }
 
-    fn within_player_view(&self, position: [i32; 2]) -> bool {
-        self.ray_visible(self.player_position, position)
+    fn within_player_view(&self, position: [i32; 2]) -> Visibility {
+        let (unobscured, distance) =
+            GameController::ray_visible(&self.state.map, self.player_position, position);
+
+        if !unobscured || distance > MAX_VISIBLE_DISTANCE{
+            Visibility::Invisible
+        } else if distance > MAX_VISIBLE_DISTANCE - VISIBILITY_FALLOFF &&
+                   distance <= MAX_VISIBLE_DISTANCE {
+            Visibility::Half
+        } else {
+            Visibility::Full
+        }
     }
 
-    fn ray_visible(&self, origin: [i32; 2], target: [i32; 2]) -> bool {
+    /// Returns a tuple indicating both whether the view from the origin to the
+    /// target is uninterrupted, and also the distance between the two.
+    fn ray_visible(map: &Map, origin: [i32; 2], target: [i32; 2]) -> (bool, u32) {
         use super::tile::TileType;
         let origin_point = (origin[0], origin[1]);
         let target_point = (target[0], target[1]);
 
+        if origin == target {
+            return (true, 0);
+        }
+
+        // first iteration will be on starting position, and will increment this to 0.
+        let mut distance = -1i32;
+
         let mut ray = Bresenham::new(origin_point, target_point);
 
         while let Some(coords) = ray.next() {
-            if let Some(ray_node) = self.state.map.get_at([coords.0, coords.1]) {
+            distance += 1;
+            if let Some(ray_node) = map.get_at([coords.0, coords.1]) {
                 match ray_node.tile_type {
+                    // visibility means not being blocked by a wall
                     TileType::Wall(_, _) => {
-                        return false;
+                        return (false, distance as u32);
                     }
                     _ => {}
                 }
             }
         }
-        true
+        (true, distance as u32)
     }
 }

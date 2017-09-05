@@ -35,31 +35,20 @@ impl GameView {
             .unwrap_or_else(|| panic!("Could not get the viewport!"))
             .rect;
 
+        self.draw_tiles(screen_rect, controller, c, g);
+        self.draw_actors(screen_rect, controller, c, g);
+        self.draw_messages(screen_rect, controller, c, g);
+    }
+
+    fn draw_actors(
+        &mut self,
+        screen_rect: [i32; 4],
+        controller: &GameController,
+        c: &Context,
+        g: &mut GlGraphics,
+    ) {
         let tile_w = screen_rect[2] as f64 / MAP_WIDTH as f64;
         let tile_h = screen_rect[3] as f64 / MAP_HEIGHT as f64;
-
-        // draw tiles
-        for x in 0..MAP_WIDTH {
-            for y in 0..MAP_HEIGHT {
-                match controller.tile_sprite_at([x as i32, y as i32]) {
-                    Ok(sprite) => {
-                        self.tm.draw_at(
-                            [
-                                x as f64 * tile_w,
-                                y as f64 * tile_h,
-                                tile_w + 1.0,
-                                tile_h + 1.0,
-                            ],
-                            sprite.key,
-                            sprite.color,
-                            c.transform,
-                            g,
-                        );
-                    }
-                    Err(why) => error!("{:?}", why),
-                };
-            }
-        }
 
         // draw actors (this includes the player)
         for (sprite, position) in controller.actor_sprites() {
@@ -76,12 +65,55 @@ impl GameView {
                 g,
             );
         }
+    }
 
-        // draw message
+    fn draw_tiles(
+        &mut self,
+        screen_rect: [i32; 4],
+        controller: &GameController,
+        c: &Context,
+        g: &mut GlGraphics,
+    ) {
+        let tile_w = screen_rect[2] as f64 / MAP_WIDTH as f64;
+        let tile_h = screen_rect[3] as f64 / MAP_HEIGHT as f64;
+
+        // draw tiles
+        for x in 0..MAP_WIDTH {
+            for y in 0..MAP_HEIGHT {
+                match controller.tile_sprite_at([x as i32, y as i32]) {
+                    Ok(sprites) => {
+                        for sprite in sprites {
+                            self.tm.draw_at(
+                                [
+                                    x as f64 * tile_w,
+                                    y as f64 * tile_h,
+                                    tile_w + 1.0,
+                                    tile_h + 1.0,
+                                ],
+                                sprite.key,
+                                sprite.color,
+                                c.transform,
+                                g,
+                            );
+                        }
+                    }
+                    Err(why) => error!("{:?}", why),
+                };
+            }
+        }
+    }
+
+    fn draw_messages(
+        &mut self,
+        screen_rect: [i32; 4],
+        controller: &GameController,
+        c: &Context,
+        g: &mut GlGraphics,
+    ) {
         if controller.should_show_messages() {
-            // background
             let screen_w = screen_rect[2] as f64;
             let screen_h = screen_rect[3] as f64;
+            let tile_w = screen_rect[2] as f64 / MAP_WIDTH as f64;
 
             let line_height = self.text_renderer.line_height(FontSize::Size24) as f64;
 

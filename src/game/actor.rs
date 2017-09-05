@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use mopa;
 use uuid::Uuid;
-use super::{Drawable, Message, Movable, Positioned};
+use super::{Drawable, Message, Map, Movable, Positioned};
 use super::actors::*;
 
 /// Dictates which set of behavior patterns the actor will exhibit
@@ -58,14 +58,11 @@ impl ActorInfo {
 ////
 ///Examples of actors include enemies, NPCs, creatures, etc.
 pub trait Actor: mopa::Any + Drawable + Movable + Positioned {
-    /// Initializes the actor and returns its new ID
-    fn init(&mut self, position: [i32; 2], behavior: BehaviorStyle) -> Result<Uuid, String>;
-
     /// Called when the object is created, after it is initialized
     fn on_create(&mut self);
 
     /// Called on each update tick
-    fn on_update(&mut self, actors: &[ActorInfo]);
+    fn on_update(&mut self, map: &Map, actors: &[ActorInfo]);
 
     /// Called when interacted with by another Actor
     fn on_interact(&mut self, actors: &[ActorInfo]);
